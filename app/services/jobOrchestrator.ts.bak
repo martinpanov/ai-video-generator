@@ -1,0 +1,116 @@
+import { PROD_URL, STEPS } from '../constants';
+import { aiCommunication } from '../lib/ai-communication';
+import { getFormData } from '../repositories/formRepository';
+import { jobUpdate } from '../repositories/jobRepository';
+import { parseAiResponse } from '../utils/parseAiResponse';
+import { timeToSeconds } from '../utils/timeToSeconds';
+import { getMetadata } from './transcribeVideo/metadata';
+import { getSrtTranscript } from './transcribeVideo/srt';
+import { generateTranscript } from './transcribeVideo/transcribe';
+import { getWordTimestamps } from './transcribeVideo/wordTimestamps';
+import { clipVideo } from './clipVideo/clipVideo';
+import prisma from '../lib/db';
+
+type Clip = {
+  clip: string;
+  description: string;
+  post: string;
+  timeEnd: string;
+  timeStart: string;
+  title: string;
+};
+
+async function processClip(jobId: string, clip: any, mediaUrl: string) {
+  // Mark clip as processing
+  const job = await prisma.job.findUnique({ where: { id: jobId } });
+  if (!job) throw new Error('Job not found');
+
+  const stepData = JSON.parse(job.stepData);
+  const clips = stepData.aiClips.clips;
+
+  clips[clip.index].status = 'processing';
+
+  await jobUpdate({
+    jobId,
+    step: 'aiClips',
+    data: { ...stepData.aiClips, clips }
+  });
+
+  // Call clipVideo with parameters
+  const startSeconds = timeToSeconds(clip.timeStart);
+  const endSeconds = timeToSeconds(clip.timeEnd);
+  const duration = endSeconds - startSeconds;
+
+  await clipVideo({
+    videoUrl: mediaUrl,
+    timeStart: String(startSeconds),
+    videoDuration: String(duration),
+    jobId: `${jobId}:${clip.index}` // Include clip index in jobId for tracking
+  });
+}
+
+export async function triggerNextStep(
+  jobId: string,
+  nextStep: { step: string; },
+  previousStepData: any
+) {
+  console.log(`Triggering next step: ${nextStep.step} for job ${jobId}`);
+
+  if (nextStep.step === STEPS.TRANSCRIBE) {
+    const mediaUrl = previousStepData.response.media.media_url;
+
+    await getMetadata({ videoUrl: mediaUrl }, jobId);
+    await generateTranscript(mediaUrl, jobId);
+  }
+
+  if (nextStep.step === STEPS.CLIP_VIDEOS) {
+    const job = await prisma.job.findUnique({ where: { id: jobId } });
+
+    if (!job) {
+      throw new Error('Job not found');
+    }
+
+    const stepData = JSON.parse(job.stepData);
+
+    // Check if we already have clips identified (AI has already run)
+    if (!stepData.aiClips) {
+      // First time: Get SRT, analyze with AI, store clips
+      const toPublicUrl = (url: string) =>
+        url?.replace('http://minio:9000', `${PROD_URL}/minio`);
+
+      const srtData = await getSrtTranscript(toPublicUrl(previousStepData.response.srt_url), jobId);
+      await getWordTimestamps(toPublicUrl(previousStepData.response.segments_url), jobId);
+
+      const { videosAmount, videoDuration } = await getFormData(jobId);
+      const data = await aiCommunication(videosAmount, videoDuration, srtData);
+      const clips = parseAiResponse(data.content);
+
+      // Store clips with processing status
+      const clipsWithStatus = clips.map((clip: Clip, index: number) => ({
+        ...clip,
+        index,
+        status: 'pending', // 'pending' | 'processing' | 'completed'
+        clipUrl: null
+      }));
+
+      await jobUpdate({
+        jobId,
+        step: 'aiClips',
+        data: { clips: clipsWithStatus, mediaUrl: toPublicUrl(previousStepData.response.media.media_url) }
+      });
+
+      // Start processing first clip
+      const firstClip = clipsWithStatus[0];
+      await processClip(jobId, firstClip, toPublicUrl(previousStepData.response.media.media_url));
+      return;
+    }
+
+    // Webhook callback: Find next unprocessed clip
+    const clips = stepData.aiClips.clips;
+    const nextPendingClip = clips.find((c: any) => c.status === 'pending');
+
+    if (nextPendingClip) {
+      await processClip(jobId, nextPendingClip, stepData.aiClips.mediaUrl);
+    }
+  }
+}

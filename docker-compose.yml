@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  ai-video-generator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai-video-generator-app
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - shared-network
+    expose:
+      - "3000"
+    volumes:
+      - ./prisma:/app/prisma
+      - ai-video-data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  ai-video-data:
+
+networks:
+  shared-network:
+    external: true
