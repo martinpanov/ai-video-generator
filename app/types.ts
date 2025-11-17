@@ -6,3 +6,12 @@ export type Config = {
 };
 
 export type RequiredConfig = Required<Config>;
+
+export type ClipData = {
+  clip: string;
+  description: string;
+  post: string;
+  timeEnd: string;
+  timeStart: string;
+  title: string;
+};

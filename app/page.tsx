@@ -1,5 +1,5 @@
 import { VideoForm } from "./components/VideoForm";
-import { StatusDialog } from "./components/StatusDialog";
+import { StatusDialog } from "./components/Status/StatusDialog";
 import { LogoutButton } from "./components/LogoutButton";
 
 export default async function Home() {

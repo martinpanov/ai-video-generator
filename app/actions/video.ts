@@ -2,6 +2,13 @@
 
 import { validation } from "../utils/validation";
 import { videoValidationSchema } from "../videoValidationSchema";
+import { requestYoutubeLink } from "../services/transcribeVideo/youtube";
+import { getMetadata } from "../services/transcribeVideo/metadata";
+import { generateTranscript } from "../services/transcribeVideo/transcribe";
+import { verifySession } from "../lib/session";
+import { jobByUser } from "../repositories/jobRepository";
+
+const YOUTUBE_URLS = ["youtube.com", "youtu.be", "youtube"];
 
 type VideoSubmitState = {
   success: boolean;
@@ -15,7 +22,7 @@ export async function handleVideoSubmit(
 ) {
   const data = {
     videoUrl: formData.get('video-url') as string,
-    videosAmount: formData.get('videos-amount') as string,
+    videosAmount: Number(formData.get('videos-amount')),
     videoDuration: formData.get('video-duration') as string,
     clipSize: formData.get('clip-size') as string
   };
@@ -26,22 +33,27 @@ export async function handleVideoSubmit(
     return { success: false, ...errors };
   }
 
-  const response = await fetch("http://localhost:3000/api/process", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
+  try {
+    const isYoutubeUrl = YOUTUBE_URLS.some(url => data.videoUrl.includes(url));
+    const userId = await verifySession();
+    const userJob = await jobByUser(userId);
 
-  const result = await response.json();
+    if (userJob) {
+      return { success: true, jobId: userJob.id, message: "There is already job in progress" };
+    }
 
-  if (!response.ok || result.error) {
-    return { success: false, message: result.error || 'Failed to process video' };
+    let jobId: string;
+
+    if (isYoutubeUrl) {
+      jobId = await requestYoutubeLink({ config: data, userId });
+    } else {
+      jobId = await getMetadata({ config: data, userId });
+      await generateTranscript(data.videoUrl, jobId);
+    }
+
+    return { success: true, jobId };
+  } catch (error: any) {
+    console.error('Failed to process video:', error);
+    return { success: false, message: error.message || 'Failed to process video' };
   }
-
-  // Do more actions here...
-  // await someOtherAction();
-  // await anotherAction();
-
-  // Return success - dialog stays open
-  return { success: true };
 }

@@ -48,7 +48,7 @@ export async function clipVideo({ timeStart, videoDuration, videoUrl, jobId }: P
     console.error('Failed to clip video:', error);
 
     const err = new Error('Failed to clip video');
-    (err as any).step = 'clip';
+    (err as any).step = STEPS.CLIP_VIDEOS;
     throw err;
   }
 }

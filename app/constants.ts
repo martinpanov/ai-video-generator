@@ -17,16 +17,16 @@ export const STATUS = {
   PENDING: "pending",
   COMPLETED: "completed",
   FAILED: "failed"
-};
+} as const;
 
 export const PIPELINES = {
   youtube: [
     { step: STEPS.DOWNLOAD, label: "Downloading video" },
-    { step: STEPS.TRANSCRIBE, label: "Transcribing audio" },
-    { step: STEPS.CLIP_VIDEOS, label: "Clipping Videos", }
+    { step: STEPS.TRANSCRIBE, subSteps: ["metaData"], label: "Transcribing audio" },
+    { step: STEPS.CLIP_VIDEOS, subSteps: ["srtTranscript", "wordTimestamps"], label: "Clipping Videos" }
   ],
   direct: [
-    { step: STEPS.TRANSCRIBE, label: "Transcribing audio" },
-    { step: STEPS.CLIP_VIDEOS, label: "Clipping Videos", }
+    { step: STEPS.TRANSCRIBE, subSteps: ["metaData"], label: "Transcribing audio" },
+    { step: STEPS.CLIP_VIDEOS, subSteps: ["srtTranscript", "wordTimestamps"], label: "Clipping Videos" }
   ]
 };

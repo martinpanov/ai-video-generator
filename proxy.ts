@@ -11,7 +11,7 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const { isAuth } = await verifySession();
+  const isAuth = await verifySession();
   const path = request.nextUrl.pathname;
   const isProtectedRoute = protectedRoutes.includes(path);
   const isPublicRoute = publicRoutes.includes(path);

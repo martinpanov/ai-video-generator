@@ -1,5 +1,6 @@
 import prisma from "@/app/lib/db";
 import { jobUpdate } from "../../repositories/jobRepository";
+import { clipFindByJob } from "../../repositories/clipRepository";
 import { PIPELINES, STATUS } from "@/app/constants";
 import { triggerNextStep } from "@/app/services/jobOrchestrator";
 import { NextResponse } from "next/server";
@@ -18,18 +19,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
 
-    const pipeline = PIPELINES[job.pipelineType];
+    await jobUpdate({ jobId, step, completedStep: step, data: webhookData });
 
-    await jobUpdate({ jobId, step, data: webhookData });
-
-    const stepData = JSON.parse(job.stepData);
-    const hasClipsInProgress = stepData.aiClips?.clips?.some((c: any) => c.status !== STATUS.COMPLETED);
+    const clips = await clipFindByJob(jobId);
+    const hasClipsInProgress = clips.some((c) => c.status !== STATUS.COMPLETED);
 
     if (hasClipsInProgress) {
       await triggerNextStep(jobId, { step }, webhookData);
 
       return NextResponse.json({ success: true });
     }
+
+    const pipeline = PIPELINES[job.pipelineType];
 
     const currentStepIndex = pipeline.findIndex(s => s.step === step);
     const nextStep = pipeline[currentStepIndex + 1];

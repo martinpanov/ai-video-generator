@@ -3,13 +3,19 @@ import { apiFetch } from "../../utils/api";
 import { jobCreate } from "@/app/repositories/jobRepository";
 import { Config, RequiredConfig } from "@/app/types";
 
-export async function requestYoutubeLink(config: Config) {
+type Params = {
+  config: Config;
+  userId?: string | null;
+};
+
+export async function requestYoutubeLink({ config, userId = null }: Params) {
   try {
     const job = await jobCreate({
       data: { originalUrl: config.videoUrl },
       step: STEPS.DOWNLOAD,
       pipelineType: "youtube",
-      formData: config as RequiredConfig
+      formData: config as RequiredConfig,
+      userId
     });
 
     const payload = {

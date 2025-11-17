@@ -4,10 +4,11 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string; }; }
+  { params }: { params: Promise<{ id: string; }>; }
 ) {
   try {
-    const job = await prisma.job.findUnique({ where: { id: params.id } });
+    const { id } = await params;
+    const job = await prisma.job.findUnique({ where: { id } });
 
     if (!job) {
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });
@@ -16,14 +17,15 @@ export async function GET(
     return NextResponse.json({
       id: job.id,
       status: job.status,
+      pipelineType: job.pipelineType,
       completedSteps: JSON.parse(job.completedSteps),
-      error: job.status === STATUS.FAILED ? job.errorMessage : null,
-      step: job.status === STATUS.FAILED ? job.failedStep : job.currentStep
+      step: job.status === STATUS.FAILED ? job.failedStep : job.currentStep,
+      error: job.status === STATUS.FAILED ? job.errorMessage : null
     });
   } catch (error: any) {
     console.error('Failed to fetch job:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch job', step: null },
+      { error: 'Failed to fetch job', step: null },
       { status: 500 }
     );
   }

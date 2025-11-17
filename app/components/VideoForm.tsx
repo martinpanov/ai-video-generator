@@ -20,12 +20,17 @@ const DROPDOWN_DETAILS = [
 export const VideoForm = () => {
   const [state, action, pending] = useActionState(handleVideoSubmit, undefined);
 
-  // Open dialog when form starts submitting (after HTML5 validation)
   useEffect(() => {
     if (pending) {
       dispatchEvent("showDialog");
     }
   }, [pending]);
+
+  useEffect(() => {
+    if (state?.success && state?.jobId) {
+      dispatchEvent("setJobId", { jobId: state.jobId });
+    }
+  }, [state]);
 
   return (
     <Card className="w-lg mx-auto">

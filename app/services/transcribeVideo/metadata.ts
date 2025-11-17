@@ -1,8 +1,15 @@
 import { apiFetch } from "../../utils/api";
 import { jobCreate, jobUpdate } from "../../repositories/jobRepository";
 import { Config, RequiredConfig } from "@/app/types";
+import { STEPS } from "@/app/constants";
 
-export async function getMetadata(config: Config, existingJobId?: string) {
+type Params = {
+  config: Config;
+  existingJobId?: string;
+  userId?: string | null;
+};
+
+export async function getMetadata({ config, existingJobId, userId = null }: Params) {
   try {
     const data = await apiFetch({
       endpoint: "/v1/media/metadata",
@@ -11,7 +18,7 @@ export async function getMetadata(config: Config, existingJobId?: string) {
     });
 
     if (existingJobId) {
-      const job = await jobUpdate({ jobId: existingJobId, step: "metaData", data });
+      const job = await jobUpdate({ jobId: existingJobId, step: STEPS.TRANSCRIBE, completedStep: "metaData", data });
       return job.id;
     }
 
@@ -19,7 +26,8 @@ export async function getMetadata(config: Config, existingJobId?: string) {
       data,
       step: "metaData",
       pipelineType: "direct",
-      formData: config as RequiredConfig
+      formData: config as RequiredConfig,
+      userId
     });
 
     return job.id;
@@ -27,7 +35,7 @@ export async function getMetadata(config: Config, existingJobId?: string) {
     console.error('Failed to get metadata:', error);
 
     const err = new Error('Failed to get video metadata');
-    (err as any).step = 'metadata';
+    (err as any).step = STEPS.TRANSCRIBE;
     throw err;
   }
 }

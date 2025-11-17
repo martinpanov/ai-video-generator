@@ -48,10 +48,12 @@ export const verifySession = cache(async () => {
   const cookie = (await cookies()).get('session')?.value;
 
   if (!cookie) {
-    return { isAuth: false };
+    return null;
   }
 
   const session = await decrypt(cookie);
 
-  return { isAuth: true, userId: session?.userId };
+  const userId = session?.userId as string;
+
+  return userId || null;
 });

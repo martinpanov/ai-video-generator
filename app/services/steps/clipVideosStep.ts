@@ -2,52 +2,49 @@ import { PROD_URL, STATUS } from '@/app/constants';
 import { aiCommunication } from '@/app/lib/ai-communication';
 import prisma from '@/app/lib/db';
 import { getFormData } from '@/app/repositories/formRepository';
-import { jobUpdate } from '@/app/repositories/jobRepository';
+import { clipCreate, clipUpdate, clipFindByJob } from '@/app/repositories/clipRepository';
 import { parseAiResponse } from '@/app/utils/parseAiResponse';
-import { getSrtTranscript } from '../transcribeVideo/srt';
-import { getWordTimestamps } from '../transcribeVideo/wordTimestamps';
-import { clipVideo } from '../clipVideo/clipVideo';
+import { getSrtTranscript } from '../clipVideo/srt';
+import { getWordTimestamps } from '../clipVideo/wordTimestamps';
+import { clipVideo as clipVideoService } from '../clipVideo/clipVideo';
 import { timeToSeconds } from '@/app/utils/timeToSeconds';
-
-type Clip = {
-  clip: string;
-  description: string;
-  post: string;
-  timeEnd: string;
-  timeStart: string;
-  title: string;
-  status: string;
-  clipUrl: string;
-};
+import { Clip } from '@prisma/client';
+import { ClipData } from '@/app/types';
+import { deleteVideo } from '../clipVideo/deleteVideo';
 
 const toPublicUrl = (url: string) =>
   url?.replace('http://minio:9000', `${PROD_URL}/minio`);
 
-async function identifyClips(job: any, previousStepData: any): Promise<Clip[]> {
-  const srtData = await getSrtTranscript(toPublicUrl(previousStepData.response.srt_url), job.id);
-  await getWordTimestamps(toPublicUrl(previousStepData.response.segments_url), job.id);
+async function identifyClips(jobId: string, previousStepData: any, userId: string | null) {
+  const srtData = await getSrtTranscript(toPublicUrl(previousStepData.response.srt_url), jobId);
+  await getWordTimestamps(toPublicUrl(previousStepData.response.segments_url), jobId);
 
-  const { videosAmount, videoDuration } = await getFormData(job.id);
+  const { videosAmount, videoDuration } = await getFormData(jobId);
   const data = await aiCommunication(videosAmount, videoDuration, srtData);
-  const clips = parseAiResponse(data.content);
+  const clipsData: ClipData[] = parseAiResponse(data.content);
 
-  return clips;
+  await Promise.all(
+    clipsData.map((clipData) =>
+      clipCreate({
+        clipData,
+        jobId,
+        userId
+      })
+    )
+  );
 }
 
-async function processClip(jobId: string, clip: Clip, allClips: Clip[], mediaUrl: string) {
-  clip.status = STATUS.PROCESSING;
-
-  await jobUpdate({
-    jobId,
-    step: 'aiClips',
-    data: { clips: allClips }
+async function processClip(clip: Clip, mediaUrl: string, jobId: string) {
+  await clipUpdate({
+    clipId: clip.id,
+    data: { status: STATUS.PROCESSING }
   });
 
   const startSeconds = timeToSeconds(clip.timeStart);
   const endSeconds = timeToSeconds(clip.timeEnd);
   const duration = endSeconds - startSeconds;
 
-  await clipVideo({
+  await clipVideoService({
     timeStart: startSeconds,
     videoDuration: duration,
     videoUrl: mediaUrl,
@@ -62,37 +59,38 @@ export async function handleClipVideosStep(jobId: string, previousStepData: any)
   }
 
   const stepData = JSON.parse(job.stepData);
-  const mediaUrl = stepData.download.response.media.media_url;
+  const mediaUrl = toPublicUrl(stepData.download.response.media.media_url);
 
-  if (!stepData.aiClips) {
-    const clips = await identifyClips(job, previousStepData);
-    await processClip(jobId, clips[0], clips, mediaUrl);
+  let clips = await clipFindByJob(jobId);
+
+  if (clips.length === 0) {
+    await identifyClips(jobId, previousStepData, job.userId);
+
+    clips = await clipFindByJob(jobId);
+    await processClip(clips[0], mediaUrl, jobId);
     return;
   }
 
-  const clips: Clip[] = stepData.aiClips.clips;
-  const clipUrl = previousStepData.response[0].file_url;
+  const clipUrl = toPublicUrl(previousStepData.response[0].file_url);
 
-  // Find the clip that's currently processing (it just finished)
   const processingClip = clips.find((c) => c.status === STATUS.PROCESSING);
 
   if (processingClip) {
-    // Update the clip with the URL and mark as completed
-    processingClip.clipUrl = clipUrl;
-    processingClip.status = STATUS.COMPLETED;
-
-    await jobUpdate({
-      jobId,
-      step: 'aiClips',
-      data: { clips }
+    await clipUpdate({
+      clipId: processingClip.id,
+      data: {
+        clipUrl,
+        status: STATUS.COMPLETED
+      }
     });
   }
 
-  // Find next pending clip
   const nextPendingClip = clips.find((c) => c.status === STATUS.PENDING);
 
   if (nextPendingClip) {
-    await processClip(jobId, nextPendingClip, clips, mediaUrl);
+    await processClip(nextPendingClip, mediaUrl, jobId);
+    return;
   }
-  // If no more pending clips, the webhook handler will advance to next pipeline step
+
+  await deleteVideo(mediaUrl);
 }
