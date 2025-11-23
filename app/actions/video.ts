@@ -3,7 +3,7 @@
 import { validation } from "../utils/validation";
 import { videoValidationSchema } from "../videoValidationSchema";
 import { requestYoutubeLink } from "../services/transcribeVideo/youtube";
-import { getMetadata } from "../services/transcribeVideo/metadata";
+import { generateMetadata } from "../services/transcribeVideo/metadata";
 import { generateTranscript } from "../services/transcribeVideo/transcribe";
 import { verifySession } from "../lib/session";
 import { jobByUser } from "../repositories/jobRepository";
@@ -24,7 +24,9 @@ export async function handleVideoSubmit(
     videoUrl: formData.get('video-url') as string,
     videosAmount: Number(formData.get('videos-amount')),
     videoDuration: formData.get('video-duration') as string,
-    clipSize: formData.get('clip-size') as string
+    clipSize: formData.get('clip-size') as string,
+    zoomVideoEnabled: Boolean(formData.get("zoom")),
+    transcribeVideoEnabled: Boolean(formData.get("transcribe"))
   };
 
   const { isValid, errors } = validation(data, videoValidationSchema);
@@ -47,7 +49,7 @@ export async function handleVideoSubmit(
     if (isYoutubeUrl) {
       jobId = await requestYoutubeLink({ config: data, userId });
     } else {
-      jobId = await getMetadata({ config: data, userId });
+      jobId = await generateMetadata({ config: data, userId });
       await generateTranscript(data.videoUrl, jobId);
     }
 

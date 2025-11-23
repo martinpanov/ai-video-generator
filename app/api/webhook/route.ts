@@ -1,6 +1,6 @@
-import prisma from "@/app/lib/db";
+import { prisma } from "@/app/lib/db";
 import { jobUpdate } from "../../repositories/jobRepository";
-import { clipFindByJob } from "../../repositories/clipRepository";
+import { clipFindNotCompleted } from "../../repositories/clipRepository";
 import { PIPELINES, STATUS } from "@/app/constants";
 import { triggerNextStep } from "@/app/services/jobOrchestrator";
 import { NextResponse } from "next/server";
@@ -21,13 +21,16 @@ export async function POST(request: Request) {
 
     await jobUpdate({ jobId, step, completedStep: step, data: webhookData });
 
-    const clips = await clipFindByJob(jobId);
-    const hasClipsInProgress = clips.some((c) => c.status !== STATUS.COMPLETED);
+    const clipsInProgress = await clipFindNotCompleted(jobId);
 
-    if (hasClipsInProgress) {
+    if (clipsInProgress.length) {
+      const isLastClipInProgress = clipsInProgress.length === 1;
+
       await triggerNextStep(jobId, { step }, webhookData);
 
-      return NextResponse.json({ success: true });
+      if (!isLastClipInProgress) {
+        return NextResponse.json({ success: true });
+      }
     }
 
     const pipeline = PIPELINES[job.pipelineType];

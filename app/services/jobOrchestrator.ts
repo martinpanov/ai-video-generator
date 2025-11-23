@@ -1,6 +1,7 @@
 import { STEPS } from '../constants';
 import { handleTranscribeStep } from './steps/transcribeStep';
 import { handleClipVideosStep } from './steps/clipVideosStep';
+import { handleFinalizeClipsStep } from './steps/finalizeClipsStep';
 
 export async function triggerNextStep(
   jobId: string,
@@ -16,6 +17,10 @@ export async function triggerNextStep(
 
     case STEPS.CLIP_VIDEOS:
       await handleClipVideosStep(jobId, previousStepData);
+      break;
+
+    case STEPS.FINALIZE_CLIPS:
+      await handleFinalizeClipsStep(jobId);
       break;
 
     default:

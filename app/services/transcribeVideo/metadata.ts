@@ -9,7 +9,7 @@ type Params = {
   userId?: string | null;
 };
 
-export async function getMetadata({ config, existingJobId, userId = null }: Params) {
+export async function generateMetadata({ config, existingJobId, userId = null }: Params) {
   try {
     const data = await apiFetch({
       endpoint: "/v1/media/metadata",

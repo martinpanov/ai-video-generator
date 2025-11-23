@@ -3,6 +3,8 @@ export type Config = {
   videosAmount?: number;
   videoDuration?: string;
   clipSize?: string;
+  zoomVideoEnabled?: boolean;
+  transcribeVideoEnabled?: boolean;
 };
 
 export type RequiredConfig = Required<Config>;

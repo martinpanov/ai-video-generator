@@ -1,4 +1,4 @@
-import prisma from "@/app/lib/db";
+import { prisma } from "../lib/db";
 import { STATUS } from "@/app/constants";
 import { ClipData } from "../types";
 
@@ -35,6 +35,8 @@ export async function clipUpdate({
   data: {
     status?: string;
     clipUrl?: string;
+    thumbnailUrl?: string;
+    finalClipUrl?: string;
   };
 }) {
   return await prisma.clip.update({
@@ -49,3 +51,24 @@ export async function clipFindByJob(jobId: string) {
     orderBy: { createdAt: 'asc' }
   });
 }
+
+export async function clipFindCompleted(jobId: string) {
+  return await prisma.clip.findMany({
+    where: {
+      jobId,
+      status: STATUS.COMPLETED
+    },
+    orderBy: { createdAt: 'asc' }
+  });
+}
+
+export async function clipFindNotCompleted(jobId: string) {
+  return await prisma.clip.findMany({
+    where: {
+      jobId,
+      status: { not: STATUS.COMPLETED }
+    },
+    orderBy: { createdAt: 'asc' }
+  });
+}
+

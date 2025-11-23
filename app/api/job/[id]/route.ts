@@ -1,5 +1,5 @@
 import { STATUS } from "@/app/constants";
-import prisma from "@/app/lib/db";
+import { prisma } from "@/app/lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET(
@@ -14,13 +14,19 @@ export async function GET(
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
 
+    const formData = JSON.parse(job.formData);
+
     return NextResponse.json({
       id: job.id,
       status: job.status,
       pipelineType: job.pipelineType,
       completedSteps: JSON.parse(job.completedSteps),
       step: job.status === STATUS.FAILED ? job.failedStep : job.currentStep,
-      error: job.status === STATUS.FAILED ? job.errorMessage : null
+      error: job.status === STATUS.FAILED ? job.errorMessage : null,
+      formData: {
+        transcribe: formData.transcribe || false,
+        zoom: formData.zoom || false
+      }
     });
   } catch (error: any) {
     console.error('Failed to fetch job:', error);

@@ -5,4 +5,8 @@ export type JobStatus = {
   step?: string;
   error?: string;
   pipelineType?: 'youtube' | 'direct';
+  formData?: {
+    transcribe?: boolean;
+    zoom?: boolean;
+  };
 };

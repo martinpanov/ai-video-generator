@@ -2,12 +2,12 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
 enum PipelineType {
@@ -41,19 +41,21 @@ model Job {
 }
 
 model Clip {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  post        String
-  clip        String   // AI-generated clip text
-  timeStart   String
-  timeEnd     String
-  clipUrl     String?
-  status      String   // 'pending', 'processing', 'completed'
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  job         Job      @relation(fields: [jobId], references: [id])
-  jobId       String
-  user        User?    @relation(fields: [userId], references: [id])
-  userId      String?
+  id           String   @id @default(cuid())
+  title        String
+  description  String
+  post         String
+  clip         String // AI-generated clip text
+  timeStart    String
+  timeEnd      String
+  clipUrl      String?
+  thumbnailUrl String?
+  finalClipUrl String
+  status       String // 'pending', 'processing', 'completed'
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  job          Job      @relation(fields: [jobId], references: [id])
+  jobId        String
+  user         User?    @relation(fields: [userId], references: [id])
+  userId       String?
 }

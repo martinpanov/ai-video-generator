@@ -9,7 +9,8 @@ export const VIDEO_DETAILS = {
 export const STEPS = {
   DOWNLOAD: "download",
   TRANSCRIBE: "transcribe",
-  CLIP_VIDEOS: "clip-videos"
+  CLIP_VIDEOS: "clip-videos",
+  FINALIZE_CLIPS: "finalize-clips"
 };
 
 export const STATUS = {
@@ -19,14 +20,16 @@ export const STATUS = {
   FAILED: "failed"
 } as const;
 
+const COMMON_STEPS = [
+  { step: STEPS.TRANSCRIBE, subSteps: ["metaData"], label: "Transcribing audio" },
+  { step: STEPS.CLIP_VIDEOS, subSteps: ["srtTranscript", "wordTimestamps"], label: "Clipping Videos" },
+  { step: STEPS.FINALIZE_CLIPS, subSteps: [], label: "Finalizing clips" }
+];
+
 export const PIPELINES = {
   youtube: [
-    { step: STEPS.DOWNLOAD, label: "Downloading video" },
-    { step: STEPS.TRANSCRIBE, subSteps: ["metaData"], label: "Transcribing audio" },
-    { step: STEPS.CLIP_VIDEOS, subSteps: ["srtTranscript", "wordTimestamps"], label: "Clipping Videos" }
+    { step: STEPS.DOWNLOAD, subSteps: [], label: "Downloading video" },
+    ...COMMON_STEPS
   ],
-  direct: [
-    { step: STEPS.TRANSCRIBE, subSteps: ["metaData"], label: "Transcribing audio" },
-    { step: STEPS.CLIP_VIDEOS, subSteps: ["srtTranscript", "wordTimestamps"], label: "Clipping Videos" }
-  ]
+  direct: COMMON_STEPS
 };

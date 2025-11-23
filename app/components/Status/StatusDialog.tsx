@@ -7,8 +7,8 @@ import { useDialogState } from "../../hooks/useDialogState";
 import { useEffect, useState } from "react";
 import { subscribe, unsubscribe } from "../../utils/events";
 import { JobStatus } from "./types";
-import { JobStatusMessage } from "./JobStatusMessage";
-import { JobStatusItemsContent } from "./JobStatusItemContent/ItemsContent";
+import { JobStatusMessage } from "./StatusMessage";
+import { JobStatusItemsContent } from "./StatusItemsContent/ItemsContent";
 import { STATUS } from "@/app/constants";
 
 export const StatusDialog = () => {
@@ -28,12 +28,11 @@ export const StatusDialog = () => {
   }, []);
 
   useEffect(() => {
+    setJobStatus(null);
+
     if (!jobId || !isOpen) {
-      setJobStatus(null);
       return;
     };
-
-    setJobStatus(null);
 
     let pollInterval = 1000;
     const maxInterval = 10000;
