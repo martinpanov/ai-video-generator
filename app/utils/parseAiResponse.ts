@@ -1,6 +1,14 @@
 export function parseAiResponse(response: any) {
-  const match = response[1]?.text?.match(/```(?:json)?\s*([\s\S]*?)```/);
-  const jsonString = match && match[1];
+  // Filter out thinking blocks and find the text content
+  const textBlock = response.find((block: any) => block.type === 'text');
 
-  return JSON.parse(jsonString);
+  if (!textBlock?.text) {
+    throw new Error('No text content found in AI response');
+  }
+
+  // Try to extract JSON from code fences, otherwise use raw text
+  const match = textBlock.text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  const jsonString = match ? match[1] : textBlock.text;
+
+  return JSON.parse(jsonString.trim());
 }

@@ -1,10 +1,8 @@
-import { prisma } from "../lib/db";
 import { Config } from "../types";
+import { jobFind } from "./jobRepository";
 
 export async function getFormData(jobId: string): Promise<Required<Config>> {
-  const job = await prisma.job.findUnique({
-    where: { id: jobId }
-  });
+  const job = await jobFind(jobId);
 
   if (!job) {
     throw new Error(`Job ${jobId} not found`);

@@ -9,8 +9,10 @@ export const VIDEO_DETAILS = {
 export const STEPS = {
   DOWNLOAD: "download",
   TRANSCRIBE: "transcribe",
-  CLIP_VIDEOS: "clip-videos",
-  FINALIZE_CLIPS: "finalize-clips"
+  CLIP_VIDEO: "clip-video",
+  FINALIZE_CLIPS: "finalize-clips",
+  CALCULATE_CLIP_DIMENSIONS: "calculate-clip-dimensions",
+  CAPTION_CLIP: "caption-clip"
 };
 
 export const STATUS = {
@@ -21,15 +23,49 @@ export const STATUS = {
 } as const;
 
 const COMMON_STEPS = [
-  { step: STEPS.TRANSCRIBE, subSteps: ["metaData"], label: "Transcribing audio" },
-  { step: STEPS.CLIP_VIDEOS, subSteps: ["srtTranscript", "wordTimestamps"], label: "Clipping Videos" },
-  { step: STEPS.FINALIZE_CLIPS, subSteps: [], label: "Finalizing clips" }
+  { step: STEPS.TRANSCRIBE, subSteps: ["metaData"], label: "Transcribing Audio" },
+  { step: STEPS.CLIP_VIDEO, subSteps: ["srtTranscript", "wordTimestamps"], label: "Clipping Videos" },
 ];
 
+const YOUTUBE_STEP = { step: STEPS.DOWNLOAD, subSteps: [], label: "Downloading Video" };
+const CLIP_DIMENSIONS_STEP = { step: STEPS.CALCULATE_CLIP_DIMENSIONS, subSteps: [], label: "Calculating Clip Dimensions" };
+const CAPTIONS_STEP = { step: STEPS.CAPTION_CLIP, subSteps: [], label: "Captioning Clip" };
+
 export const PIPELINES = {
-  youtube: [
-    { step: STEPS.DOWNLOAD, subSteps: [], label: "Downloading video" },
+  YOUTUBE: [
+    YOUTUBE_STEP,
     ...COMMON_STEPS
   ],
-  direct: COMMON_STEPS
+  YOUTUBE_ZOOM: [
+    YOUTUBE_STEP,
+    ...COMMON_STEPS,
+    CLIP_DIMENSIONS_STEP
+  ],
+  YOUTUBE_CAPTION: [
+    YOUTUBE_STEP,
+    ...COMMON_STEPS,
+    CAPTIONS_STEP
+  ],
+  YOUTUBE_CAPTION_ZOOM: [
+    YOUTUBE_STEP,
+    ...COMMON_STEPS,
+    CLIP_DIMENSIONS_STEP,
+    CAPTIONS_STEP
+  ],
+
+
+  DIRECT: COMMON_STEPS,
+  DIRECT_ZOOM: [
+    ...COMMON_STEPS,
+    CLIP_DIMENSIONS_STEP
+  ],
+  DIRECT_CAPTION: [
+    ...COMMON_STEPS,
+    CAPTIONS_STEP
+  ],
+  DIRECT_CAPTION_ZOOM: [
+    ...COMMON_STEPS,
+    CLIP_DIMENSIONS_STEP,
+    CAPTIONS_STEP
+  ],
 };

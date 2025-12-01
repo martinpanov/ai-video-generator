@@ -1,9 +1,8 @@
 import { prisma } from "@/app/lib/db";
-import { jobUpdate } from "../../repositories/jobRepository";
-import { clipFindNotCompleted } from "../../repositories/clipRepository";
-import { PIPELINES, STATUS } from "@/app/constants";
-import { triggerNextStep } from "@/app/services/jobOrchestrator";
+import { jobQueue } from "@/app/services/jobQueue";
+import { STATUS } from "@/app/constants";
 import { NextResponse } from "next/server";
+import { jobFind } from "@/app/repositories/jobRepository";
 
 export async function POST(request: Request) {
   try {
@@ -13,40 +12,21 @@ export async function POST(request: Request) {
 
     const webhookData = await request.json();
 
-    const job = await prisma.job.findUnique({ where: { id: jobId } });
+    if (webhookData.code !== 200 && webhookData.code !== 202) {
+      console.error('Failed to retrieve data from webhook call:', webhookData.message);
+
+      const err = new Error('Failed to retrieve data from webhook call');
+      (err as any).step = step;
+      throw err;
+    }
+
+    const job = await jobFind(jobId);
 
     if (!job) {
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
 
-    await jobUpdate({ jobId, step, completedStep: step, data: webhookData });
-
-    const clipsInProgress = await clipFindNotCompleted(jobId);
-
-    if (clipsInProgress.length) {
-      const isLastClipInProgress = clipsInProgress.length === 1;
-
-      await triggerNextStep(jobId, { step }, webhookData);
-
-      if (!isLastClipInProgress) {
-        return NextResponse.json({ success: true });
-      }
-    }
-
-    const pipeline = PIPELINES[job.pipelineType];
-
-    const currentStepIndex = pipeline.findIndex(s => s.step === step);
-    const nextStep = pipeline[currentStepIndex + 1];
-
-    if (nextStep) {
-      await triggerNextStep(jobId, nextStep, webhookData);
-    } else {
-      // Pipeline complete
-      await prisma.job.update({
-        where: { id: jobId },
-        data: { status: STATUS.COMPLETED }
-      });
-    }
+    await jobQueue.completeStep(jobId, step, webhookData);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

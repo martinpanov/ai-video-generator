@@ -17,3 +17,5 @@ export type ClipData = {
   timeStart: string;
   title: string;
 };
+
+export type Status = "processing" | "completed" | "pending" | "failed";

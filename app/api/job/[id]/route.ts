@@ -1,5 +1,5 @@
 import { STATUS } from "@/app/constants";
-import { prisma } from "@/app/lib/db";
+import { jobFind } from "@/app/repositories/jobRepository";
 import { NextResponse } from "next/server";
 
 export async function GET(
@@ -8,13 +8,11 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const job = await prisma.job.findUnique({ where: { id } });
+    const job = await jobFind(id);
 
     if (!job) {
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
-
-    const formData = JSON.parse(job.formData);
 
     return NextResponse.json({
       id: job.id,
@@ -22,11 +20,7 @@ export async function GET(
       pipelineType: job.pipelineType,
       completedSteps: JSON.parse(job.completedSteps),
       step: job.status === STATUS.FAILED ? job.failedStep : job.currentStep,
-      error: job.status === STATUS.FAILED ? job.errorMessage : null,
-      formData: {
-        transcribe: formData.transcribe || false,
-        zoom: formData.zoom || false
-      }
+      error: job.status === STATUS.FAILED ? job.errorMessage : null
     });
   } catch (error: any) {
     console.error('Failed to fetch job:', error);

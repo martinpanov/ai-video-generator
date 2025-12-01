@@ -2,11 +2,12 @@
 
 import { validation } from "../utils/validation";
 import { videoValidationSchema } from "../videoValidationSchema";
-import { requestYoutubeLink } from "../services/transcribeVideo/youtube";
-import { generateMetadata } from "../services/transcribeVideo/metadata";
-import { generateTranscript } from "../services/transcribeVideo/transcribe";
+import { requestYoutubeLink } from "../services/transcribe/youtube";
+import { generateMetadata } from "../services/transcribe/metadata";
+import { generateTranscript } from "../services/transcribe/transcribe";
 import { verifySession } from "../lib/session";
 import { jobByUser } from "../repositories/jobRepository";
+import { getPipelineType } from "../utils/getPipelineType";
 
 const YOUTUBE_URLS = ["youtube.com", "youtu.be", "youtube"];
 
@@ -36,8 +37,12 @@ export async function handleVideoSubmit(
   }
 
   try {
-    const isYoutubeUrl = YOUTUBE_URLS.some(url => data.videoUrl.includes(url));
     const userId = await verifySession();
+
+    if (!userId) {
+      return { success: false, message: "You don't have access to this job" };
+    }
+
     const userJob = await jobByUser(userId);
 
     if (userJob) {
@@ -46,10 +51,17 @@ export async function handleVideoSubmit(
 
     let jobId: string;
 
+    const isYoutubeUrl = YOUTUBE_URLS.some(url => data.videoUrl.includes(url));
+    const pipelineType = getPipelineType({
+      isZoomEnabled: data.zoomVideoEnabled,
+      isCaptionEnabled: data.transcribeVideoEnabled,
+      videoType: isYoutubeUrl ? "YOUTUBE" : "DIRECT"
+    });
+
     if (isYoutubeUrl) {
-      jobId = await requestYoutubeLink({ config: data, userId });
+      jobId = await requestYoutubeLink({ config: data, userId, pipelineType });
     } else {
-      jobId = await generateMetadata({ config: data, userId });
+      jobId = await generateMetadata({ config: data, userId, pipelineType });
       await generateTranscript(data.videoUrl, jobId);
     }
 

@@ -1,0 +1,42 @@
+import { processClipsSequentially, resetClipsForNewStep } from "@/app/utils/clipProcessor";
+import { captionVideo } from "../captionClip/captionClip";
+import { STATUS, STEPS } from "@/app/constants";
+import { Clip } from "@/generated/prisma/client";
+import { clipUpdate } from "@/app/repositories/clipRepository";
+import { toPublicUrl } from "@/app/utils/toPublicUrl";
+
+async function processClip(clip: Clip, jobId: string) {
+  await clipUpdate({
+    clipId: clip.id,
+    data: { status: STATUS.PROCESSING },
+    step: STEPS.CAPTION_CLIP
+  });
+
+  await captionVideo(clip, jobId);
+}
+
+async function handleClipResponse(processingClip: Clip, previousStepData: any) {
+  const clipUrl = toPublicUrl(previousStepData.response);
+
+  await clipUpdate({
+    clipId: processingClip.id,
+    data: {
+      clipUrl,
+      status: STATUS.COMPLETED
+    },
+    step: STEPS.CAPTION_CLIP
+  });
+}
+
+export async function handleCaption(jobId: string, previousStepData: any) {
+  await resetClipsForNewStep(jobId, STEPS.CAPTION_CLIP);
+
+  await processClipsSequentially({
+    jobId,
+    step: STEPS.CAPTION_CLIP,
+    previousStepData,
+    processClipFn: processClip,
+    handleResponseFn: handleClipResponse,
+    additionalArgs: [jobId]
+  });
+}

@@ -1,9 +1,7 @@
-import { prisma } from "../lib/db";
+import { jobFind } from "./jobRepository";
 
 export async function getMetadata(jobId: string) {
-  const job = await prisma.job.findFirst({
-    where: { id: jobId }
-  });
+  const job = await jobFind(jobId);
 
   if (!job) {
     throw new Error(`Job ${jobId} not found`);

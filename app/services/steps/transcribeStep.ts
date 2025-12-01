@@ -1,5 +1,5 @@
-import { generateMetadata } from '../transcribeVideo/metadata';
-import { generateTranscript } from '../transcribeVideo/transcribe';
+import { generateMetadata } from '../transcribe/metadata';
+import { generateTranscript } from '../transcribe/transcribe';
 
 export async function handleTranscribeStep(jobId: string, previousStepData: any) {
   const mediaUrl = previousStepData.response.media.media_url;

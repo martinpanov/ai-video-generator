@@ -1,29 +1,28 @@
-import { PROD_URL, STATUS } from '@/app/constants';
+import { STATUS, STEPS } from '@/app/constants';
 import { aiCommunication } from '@/app/lib/ai-communication';
-import { prisma } from '@/app/lib/db';
 import { getFormData } from '@/app/repositories/formRepository';
 import { clipCreate, clipUpdate, clipFindByJob } from '@/app/repositories/clipRepository';
 import { parseAiResponse } from '@/app/utils/parseAiResponse';
 import { getSrtTranscript } from '../clipVideo/srt';
 import { getWordTimestamps } from '../clipVideo/wordTimestamps';
-import { clipVideo as clipVideoService } from '../clipVideo/clipVideo';
+import { clipVideo } from '../clipVideo/clipVideo';
 import { timeToSeconds } from '@/app/utils/timeToSeconds';
 import { Clip } from '@/generated/prisma/client';
 import { ClipData } from '@/app/types';
 import { deleteVideo } from '../clipVideo/deleteVideo';
+import { jobFind } from '@/app/repositories/jobRepository';
+import { processClipsSequentially } from '@/app/utils/clipProcessor';
+import { toPublicUrl } from '@/app/utils/toPublicUrl';
 
-const toPublicUrl = (url: string) =>
-  url?.replace('http://minio:9000', `${PROD_URL}/minio`);
-
-async function identifyClips(jobId: string, previousStepData: any, userId: string | null) {
+async function identifyClips(jobId: string, previousStepData: any, userId: string) {
   const srtData = await getSrtTranscript(toPublicUrl(previousStepData.response.srt_url), jobId);
-  await getWordTimestamps(toPublicUrl(previousStepData.response.segments_url), jobId);
+  // await getWordTimestamps(toPublicUrl(previousStepData.response.segments_url), jobId);
 
   const { videosAmount, videoDuration } = await getFormData(jobId);
   const data = await aiCommunication(videosAmount, videoDuration, srtData);
   const clipsData: ClipData[] = parseAiResponse(data.content);
 
-  await Promise.all(
+  return Promise.all(
     clipsData.map((clipData) =>
       clipCreate({
         clipData,
@@ -37,14 +36,15 @@ async function identifyClips(jobId: string, previousStepData: any, userId: strin
 async function processClip(clip: Clip, mediaUrl: string, jobId: string) {
   await clipUpdate({
     clipId: clip.id,
-    data: { status: STATUS.PROCESSING }
+    data: { status: STATUS.PROCESSING },
+    step: STEPS.CLIP_VIDEO
   });
 
   const startSeconds = timeToSeconds(clip.timeStart);
   const endSeconds = timeToSeconds(clip.timeEnd);
   const duration = endSeconds - startSeconds;
 
-  await clipVideoService({
+  await clipVideo({
     timeStart: startSeconds,
     videoDuration: duration,
     videoUrl: mediaUrl,
@@ -52,47 +52,45 @@ async function processClip(clip: Clip, mediaUrl: string, jobId: string) {
   });
 }
 
+async function handleClipResponse(processingClip: Clip, previousStepData: any) {
+  const clipUrl = toPublicUrl(previousStepData.response[0].file_url);
+  const thumbnailUrl = toPublicUrl(previousStepData.response[0].thumbnail_url);
+
+  await clipUpdate({
+    clipId: processingClip.id,
+    data: {
+      clipUrl,
+      thumbnailUrl,
+      status: STATUS.COMPLETED
+    },
+    step: STEPS.CLIP_VIDEO
+  });
+}
+
 export async function handleClipVideosStep(jobId: string, previousStepData: any) {
-  const job = await prisma.job.findUnique({ where: { id: jobId } });
+  const job = await jobFind(jobId);
+
   if (!job) {
-    throw new Error('Job not found');
+    throw new Error(`Job ${jobId} not found`);
   }
 
   const stepData = JSON.parse(job.stepData);
   const mediaUrl = toPublicUrl(stepData.download.response.media.media_url);
 
-  let clips = await clipFindByJob(jobId);
+  const clips = await clipFindByJob(jobId);
 
   if (clips.length === 0) {
     await identifyClips(jobId, previousStepData, job.userId);
-
-    clips = await clipFindByJob(jobId);
-    await processClip(clips[0], mediaUrl, jobId);
-    return;
   }
 
-  const clipUrl = toPublicUrl(previousStepData.response[0].file_url);
-  const thumbnailUrl = toPublicUrl(previousStepData.response[0].thumbnail_url);
+  await processClipsSequentially({
+    jobId,
+    step: STEPS.CLIP_VIDEO,
+    previousStepData,
+    processClipFn: processClip,
+    handleResponseFn: handleClipResponse,
+    additionalArgs: [mediaUrl, jobId]
+  });
 
-  const processingClip = clips.find((c) => c.status === STATUS.PROCESSING);
-
-  if (processingClip) {
-    await clipUpdate({
-      clipId: processingClip.id,
-      data: {
-        clipUrl,
-        thumbnailUrl,
-        status: STATUS.COMPLETED
-      }
-    });
-  }
-
-  const nextPendingClip = clips.find((c) => c.status === STATUS.PENDING);
-
-  if (nextPendingClip) {
-    await processClip(nextPendingClip, mediaUrl, jobId);
-    return;
-  }
-
-  await deleteVideo(mediaUrl);
+  // await deleteVideo(mediaUrl);
 }

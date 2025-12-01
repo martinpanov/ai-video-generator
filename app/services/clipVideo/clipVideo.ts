@@ -40,15 +40,15 @@ export async function clipVideo({ timeStart, videoDuration, videoUrl, jobId }: P
       metadata: {
         thumbnail: true
       },
-      webhook_url: `${WEBHOOK_URL}?jobId=${jobId}&step=${STEPS.CLIP_VIDEOS}`
+      webhook_url: `${WEBHOOK_URL}?jobId=${jobId}&step=${STEPS.CLIP_VIDEO}`
     };
 
-    return await apiFetch({ endpoint: "/v1/ffmpeg/compose", method: "POST", body: payload });
+    return apiFetch({ endpoint: "/v1/ffmpeg/compose", method: "POST", body: payload });
   } catch (error) {
     console.error('Failed to clip video:', error);
 
     const err = new Error('Failed to clip video');
-    (err as any).step = STEPS.CLIP_VIDEOS;
+    (err as any).step = STEPS.CLIP_VIDEO;
     throw err;
   }
 }

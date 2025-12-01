@@ -1,34 +1,53 @@
 import { prisma } from "../lib/db";
 import { STATUS } from "../constants";
+import { PipelineType } from "@/generated/prisma/enums";
+
+export async function jobFind(jobId: string) {
+  return prisma.job.findUnique({ where: { id: jobId } });
+}
 
 export async function jobCreate({
   data,
   step,
+  completedStep,
   pipelineType,
   formData,
   userId
 }: {
   data: any;
   step: string;
-  pipelineType: 'youtube' | 'direct';
+  completedStep?: string;
+  pipelineType: PipelineType;
   formData?: { videoUrl: string; videosAmount: number; videoDuration: string; };
-  userId: string | null;
+  userId: string;
 }) {
-  return await prisma.job.create({
+  const completedSteps = completedStep ? [completedStep] : [];
+
+  return prisma.job.create({
     data: {
       pipelineType,
       status: STATUS.PROCESSING,
       currentStep: step,
-      completedSteps: JSON.stringify([]),
-      stepData: JSON.stringify({ [step]: data }),
+      completedSteps: JSON.stringify(completedSteps),
+      stepData: JSON.stringify({ [completedStep || step]: data }),
       formData: JSON.stringify(formData || {}),
       userId
     }
   });
 }
 
-export async function jobUpdate({ jobId, step, completedStep, data }: any) {
-  const job = await prisma.job.findUnique({ where: { id: jobId } });
+export async function jobUpdate({
+  jobId,
+  data,
+  step,
+  completedStep = null
+}: {
+  jobId: string;
+  data: any;
+  step: string;
+  completedStep: any;
+}) {
+  const job = await jobFind(jobId);
 
   if (!job) {
     throw new Error(`Job ${jobId} not found`);
@@ -37,28 +56,33 @@ export async function jobUpdate({ jobId, step, completedStep, data }: any) {
   const existingStepData = JSON.parse(job.stepData);
   const existingCompletedSteps = JSON.parse(job.completedSteps);
 
-  return await prisma.job.update({
+  let completedSteps = completedStep ? [...existingCompletedSteps, completedStep] : existingCompletedSteps;
+
+  return prisma.job.update({
     where: { id: jobId },
     data: {
       currentStep: step,
-      completedSteps: JSON.stringify([...existingCompletedSteps, completedStep]),
+      completedSteps: JSON.stringify(completedSteps),
       stepData: JSON.stringify({
         ...existingStepData,
-        [step]: data
+        [completedStep]: data
       })
     }
   });
 }
 
 export async function jobDelete(jobId: string) {
-  return await prisma.job.delete({
+  return prisma.job.delete({
     where: { id: jobId }
   });
 }
 
-export async function jobByUser(userId: string | null) {
+export async function jobByUser(userId: string) {
   const userJob = await prisma.job.findFirst({
-    where: { userId }
+    where: { userId },
+    orderBy: {
+      createdAt: "desc"
+    }
   });
 
   if (userJob?.status === STATUS.PROCESSING || userJob?.status === STATUS.PENDING) {
