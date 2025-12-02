@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BadgeCheckIcon, XCircle } from "lucide-react";
 import { useDialogState } from "../../hooks/useDialogState";
@@ -10,6 +10,7 @@ import { JobStatus } from "./types";
 import { JobStatusMessage } from "./StatusMessage";
 import { JobStatusItemsContent } from "./StatusItemsContent/ItemsContent";
 import { STATUS } from "@/app/constants";
+import Link from "next/link";
 
 export const StatusDialog = () => {
   const { isOpen, setIsOpen } = useDialogState();
@@ -92,7 +93,9 @@ export const StatusDialog = () => {
             <Button variant="outline">Close</Button>
           </DialogClose>
           {jobStatus?.status === STATUS.COMPLETED && (
-            <Button>View Clips</Button>
+            <Link href="/clips" className={buttonVariants({ variant: "default" })}>
+              View Clips
+            </Link>
           )}
         </DialogFooter>
       </DialogContent>

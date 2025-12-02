@@ -16,10 +16,10 @@ export const STEPS = {
 };
 
 export const STATUS = {
-  PROCESSING: "processing",
-  PENDING: "pending",
-  COMPLETED: "completed",
-  FAILED: "failed"
+  PROCESSING: "Processing",
+  PENDING: "Pending",
+  COMPLETED: "Completed",
+  FAILED: "Failed"
 } as const;
 
 const COMMON_STEPS = [

@@ -70,3 +70,30 @@ export async function clipFindByJob(jobId: string) {
     orderBy: { createdAt: 'asc' }
   });
 }
+
+export async function clipFindByUser(
+  userId: string,
+  page: number = 1,
+  pageSize: number = 20
+) {
+  const skip = (page - 1) * pageSize;
+
+  const [clips, totalCount] = await Promise.all([
+    prisma.clip.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: pageSize
+    }),
+    prisma.clip.count({
+      where: { userId }
+    })
+  ]);
+
+  return {
+    clips,
+    totalCount,
+    totalPages: Math.ceil(totalCount / pageSize),
+    currentPage: page
+  };
+}

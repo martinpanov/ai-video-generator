@@ -19,7 +19,7 @@ export const AuthForm = ({ callToAction, type }: Props) => {
   const [state, action, pending] = useActionState(authAction, undefined);
 
   return (
-    <Card className="w-sm mx-auto">
+    <Card className="w-sm">
       <CardHeader>
         <CardTitle className="mx-auto">
           {type}

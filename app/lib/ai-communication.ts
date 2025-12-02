@@ -28,7 +28,7 @@ export async function aiCommunication(videosAmount: number, videoDuration: strin
       messages: [
         {
           "role": "user",
-          "content": `Analyze this SRT transcript and extract EXACTLY ${videosAmount} clips (no more, no less). Each clip must be less than ${videoDuration}.
+          "content": `Analyze this SRT transcript and extract EXACTLY ${videosAmount} clips (no more, no less). Each clip must be no less than ${videoDuration} but at most 5 minutes.
           
           **TRANSCRIPT:**
           ${srt}
@@ -60,7 +60,7 @@ export async function aiCommunication(videosAmount: number, videoDuration: strin
           - Controversial or counterintuitive takes
           
           **LENGTH GUIDANCE:**
-          - Target: Less than ${videoDuration}
+          - Target: No less than ${videoDuration} but at most 5 minutes.
           - Prioritize completeness over brevity
           - If a valuable sequence runs longer, include the full sequence
           

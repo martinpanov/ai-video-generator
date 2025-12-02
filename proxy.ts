@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifySession } from './app/lib/session';
 
-const protectedRoutes = ["/"];
+const protectedRoutes = ["/", "/clips"];
 const publicRoutes = ["/login", "/register"];
 
 export default async function proxy(request: NextRequest) {
@@ -13,8 +13,12 @@ export default async function proxy(request: NextRequest) {
 
   const isAuth = await verifySession();
   const path = request.nextUrl.pathname;
-  const isProtectedRoute = protectedRoutes.includes(path);
-  const isPublicRoute = publicRoutes.includes(path);
+  const isProtectedRoute = protectedRoutes.some(route =>
+    path === route || path.startsWith(route + '/')
+  );
+  const isPublicRoute = publicRoutes.some(route =>
+    path === route || path.startsWith(route + '/')
+  );
 
   if (isProtectedRoute && !isAuth) {
     return NextResponse.redirect(new URL('/login', request.nextUrl));

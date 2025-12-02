@@ -1,10 +1,13 @@
+import Link from "next/link";
 import { AuthForm } from "../components/AuthForm";
 
 export default function Register() {
   return (
-    <AuthForm
-      type="Register"
-      callToAction={<p>Have an account? <a className="underline-offset-5 hover:underline" href="/login">Login</a></p>}
-    />
+    <div className="flex items-center justify-center min-h-screen">
+      <AuthForm
+        type="Register"
+        callToAction={<p>Have an account? <Link className="underline-offset-5 hover:underline" href="/login">Login</Link></p>}
+      />
+    </div>
   );
 }

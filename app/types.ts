@@ -18,4 +18,4 @@ export type ClipData = {
   title: string;
 };
 
-export type Status = "processing" | "completed" | "pending" | "failed";
+export type Status = "Processing" | "Completed" | "Pending" | "Failed";

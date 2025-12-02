@@ -33,7 +33,7 @@ export const VideoForm = () => {
   }, [state]);
 
   return (
-    <Card className="w-lg mx-auto">
+    <Card className="w-lg m-auto">
       <CardHeader>
         <CardTitle className="text-center">
           Ai Video Generator
@@ -48,7 +48,7 @@ export const VideoForm = () => {
             </Field>
             <Field>
               <FieldLabel htmlFor="videos-amount">Amount of videos</FieldLabel>
-              <Input id="videos-amount" name="videos-amount" type="number" defaultValue={1} min={1} max={5} required />
+              <Input id="videos-amount" name="videos-amount" type="number" defaultValue={1} min={1} max={5} required className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
             </Field>
             {DROPDOWN_DETAILS.map(dropdown => <FormDropdown key={dropdown.field} {...dropdown} />)}
             <Field>
