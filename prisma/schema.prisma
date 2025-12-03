@@ -11,10 +11,10 @@ datasource db {
 }
 
 enum PipelineType {
-  YOUTUBE
-  YOUTUBE_ZOOM
-  YOUTUBE_CAPTION
-  YOUTUBE_CAPTION_ZOOM
+  VIDEO_SOCIAL_MEDIA
+  VIDEO_SOCIAL_MEDIA_ZOOM
+  VIDEO_SOCIAL_MEDIA_CAPTION
+  VIDEO_SOCIAL_MEDIA_CAPTION_ZOOM
   DIRECT
   DIRECT_ZOOM
   DIRECT_CAPTION
@@ -31,7 +31,7 @@ model User {
 
 model Job {
   id             String       @id @default(cuid())
-  pipelineType   PipelineType // 'youtube' or 'direct'
+  pipelineType   PipelineType
   status         String // 'pending', 'processing', 'completed', 'failed'
   currentStep    String // 'download', 'metadata', 'transcribe', 'translate', 'compress'
   completedSteps String       @default("[]") // JSON array of completed step names: ["download", "metadata"]

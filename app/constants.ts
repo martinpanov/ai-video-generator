@@ -27,27 +27,27 @@ const COMMON_STEPS = [
   { step: STEPS.CLIP_VIDEO, subSteps: ["srtTranscript", "wordTimestamps"], label: "Clipping Videos" },
 ];
 
-const YOUTUBE_STEP = { step: STEPS.DOWNLOAD, subSteps: [], label: "Downloading Video" };
+const VIDEO_SOCIAL_MEDIA_STEP = { step: STEPS.DOWNLOAD, subSteps: [], label: "Downloading Video" };
 const CLIP_DIMENSIONS_STEP = { step: STEPS.CALCULATE_CLIP_DIMENSIONS, subSteps: [], label: "Calculating Clip Dimensions" };
 const CAPTIONS_STEP = { step: STEPS.CAPTION_CLIP, subSteps: [], label: "Captioning Clip" };
 
 export const PIPELINES = {
-  YOUTUBE: [
-    YOUTUBE_STEP,
+  VIDEO_SOCIAL_MEDIA: [
+    VIDEO_SOCIAL_MEDIA_STEP,
     ...COMMON_STEPS
   ],
-  YOUTUBE_ZOOM: [
-    YOUTUBE_STEP,
+  VIDEO_SOCIAL_MEDIA_ZOOM: [
+    VIDEO_SOCIAL_MEDIA_STEP,
     ...COMMON_STEPS,
     CLIP_DIMENSIONS_STEP
   ],
-  YOUTUBE_CAPTION: [
-    YOUTUBE_STEP,
+  VIDEO_SOCIAL_MEDIA_CAPTION: [
+    VIDEO_SOCIAL_MEDIA_STEP,
     ...COMMON_STEPS,
     CAPTIONS_STEP
   ],
-  YOUTUBE_CAPTION_ZOOM: [
-    YOUTUBE_STEP,
+  VIDEO_SOCIAL_MEDIA_CAPTION_ZOOM: [
+    VIDEO_SOCIAL_MEDIA_STEP,
     ...COMMON_STEPS,
     CLIP_DIMENSIONS_STEP,
     CAPTIONS_STEP

@@ -13,7 +13,7 @@ export async function AppSidebar() {
     <Sidebar>
       <SidebarContent className="flex justify-between">
         <SidebarGroup>
-          <SidebarGroupLabel>Ai Video Generator</SidebarGroupLabel>
+          <SidebarGroupLabel>AI Video Generator</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarNav />
           </SidebarGroupContent>

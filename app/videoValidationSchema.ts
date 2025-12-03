@@ -21,12 +21,18 @@ export const videoValidationSchema = {
     isEqualTo: {
       value: VIDEO_DETAILS.VIDEOS_DURATION,
       message: "Invalid Video Duration"
+    },
+    skip: {
+      splitVideo: true
     }
   },
   clipSize: {
     isEqualTo: {
       value: VIDEO_DETAILS.VIDEOS_SIZES,
       message: "Invalid Clip Size"
+    },
+    skip: {
+      zoomVideoEnabled: false
     }
   }
 };

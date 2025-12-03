@@ -23,7 +23,7 @@ const getStepStatus = ({ jobStatus, step, subSteps }: GetStepStatusParams) => {
 
 export const JobStatusItemsContent = ({ jobStatus }: { jobStatus: JobStatus | null; }) => {
   const steps = jobStatus?.pipelineType ? PIPELINES[jobStatus.pipelineType] : [];
-  const maxSteps = PIPELINES.YOUTUBE_CAPTION_ZOOM;
+  const maxSteps = PIPELINES.VIDEO_SOCIAL_MEDIA_CAPTION_ZOOM;
 
   if (steps.length !== 0) {
     return steps.map(({ step, label, subSteps }) => {

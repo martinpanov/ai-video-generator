@@ -3,7 +3,7 @@ import { PipelineType } from "@/generated/prisma/enums";
 type Params = {
   isZoomEnabled: boolean;
   isCaptionEnabled: boolean;
-  videoType: "YOUTUBE" | "DIRECT";
+  videoType: "VIDEO_SOCIAL_MEDIA" | "DIRECT";
 };
 
 

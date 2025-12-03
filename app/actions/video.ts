@@ -2,19 +2,24 @@
 
 import { validation } from "../utils/validation";
 import { videoValidationSchema } from "../videoValidationSchema";
-import { requestYoutubeLink } from "../services/transcribe/youtube";
+import { requestVideoSocialMediaLink } from "../services/transcribe/videoSocialMedia";
 import { generateMetadata } from "../services/transcribe/metadata";
 import { generateTranscript } from "../services/transcribe/transcribe";
 import { verifySession } from "../lib/session";
 import { jobByUser } from "../repositories/jobRepository";
 import { getPipelineType } from "../utils/getPipelineType";
 
-const YOUTUBE_URLS = ["youtube.com", "youtu.be", "youtube"];
+const VIDEO_SOCIAL_MEDIA_URLS = ["youtube.com", "youtu.be", "youtube", "kick"];
 
-type VideoSubmitState = {
+export type VideoSubmitState = {
   success: boolean;
   message?: string;
-  [key: string]: any;
+  jobId?: string;
+  videoUrl?: string;
+  videosAmount?: string;
+  videoDuration?: string;
+  clipSize?: string;
+  [key: string]: string | boolean | undefined;
 } | undefined;
 
 export async function handleVideoSubmit(
@@ -27,7 +32,8 @@ export async function handleVideoSubmit(
     videoDuration: formData.get('video-duration') as string,
     clipSize: formData.get('clip-size') as string,
     zoomVideoEnabled: Boolean(formData.get("zoom")),
-    transcribeVideoEnabled: Boolean(formData.get("transcribe"))
+    transcribeVideoEnabled: Boolean(formData.get("transcribe")),
+    splitVideo: Boolean(formData.get("split-video"))
   };
 
   const { isValid, errors } = validation(data, videoValidationSchema);
@@ -51,15 +57,15 @@ export async function handleVideoSubmit(
 
     let jobId: string;
 
-    const isYoutubeUrl = YOUTUBE_URLS.some(url => data.videoUrl.includes(url));
+    const isVideoSocialMediaUrl = VIDEO_SOCIAL_MEDIA_URLS.some(url => data.videoUrl.includes(url));
     const pipelineType = getPipelineType({
       isZoomEnabled: data.zoomVideoEnabled,
       isCaptionEnabled: data.transcribeVideoEnabled,
-      videoType: isYoutubeUrl ? "YOUTUBE" : "DIRECT"
+      videoType: isVideoSocialMediaUrl ? "VIDEO_SOCIAL_MEDIA" : "DIRECT"
     });
 
-    if (isYoutubeUrl) {
-      jobId = await requestYoutubeLink({ config: data, userId, pipelineType });
+    if (isVideoSocialMediaUrl) {
+      jobId = await requestVideoSocialMediaLink({ config: data, userId, pipelineType });
     } else {
       jobId = await generateMetadata({ config: data, userId, pipelineType });
       await generateTranscript(data.videoUrl, jobId);

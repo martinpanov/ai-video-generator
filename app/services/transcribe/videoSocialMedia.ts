@@ -10,7 +10,7 @@ type Params = {
   pipelineType: PipelineType;
 };
 
-export async function requestYoutubeLink({ config, userId, pipelineType }: Params) {
+export async function requestVideoSocialMediaLink({ config, userId, pipelineType }: Params) {
   try {
     const job = await jobCreate({
       data: { originalUrl: config.videoUrl },
@@ -31,9 +31,9 @@ export async function requestYoutubeLink({ config, userId, pipelineType }: Param
 
     return job.id;
   } catch (error) {
-    console.error('Failed to request YouTube link:', error);
+    console.error('Failed to request link:', error);
 
-    const err = new Error('Failed to download YouTube video');
+    const err = new Error('Failed to download video');
     (err as any).step = STEPS.DOWNLOAD;
     throw err;
   }

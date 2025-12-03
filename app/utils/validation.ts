@@ -3,7 +3,7 @@ const validationHandler: Record<string, (configValue: any, inputValue: any) => b
   regex: (regex: RegExp, value: string) => !regex.test(value),
   isEqualTo: (stringToMatch: string | string[], value: string) => Array.isArray(stringToMatch) ? !stringToMatch.some(string => string === value) : stringToMatch !== value,
   min: (number: number, value) => value < number,
-  max: (number: number, value) => value > number
+  max: (number: number, value) => value > number,
 };
 
 export function validation(data: Record<string, any>, validationSchema: any) {
@@ -16,7 +16,21 @@ export function validation(data: Record<string, any>, validationSchema: any) {
       return;
     };
 
+    if (schema.skip) {
+      const shouldSkip = Object.entries(schema.skip).some(([skipKey, skipValue]) => {
+        return data[skipKey] === skipValue;
+      });
+
+      if (shouldSkip) {
+        return;
+      }
+    }
+
     Object.entries(schema).forEach(([validationType, config]: [string, any]) => {
+      if (validationType === 'skip') {
+        return;
+      }
+
       const handler = validationHandler[validationType as keyof typeof validationHandler];
 
       if (handler) {

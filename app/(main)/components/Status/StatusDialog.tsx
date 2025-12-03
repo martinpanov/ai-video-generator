@@ -3,9 +3,9 @@
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BadgeCheckIcon, XCircle } from "lucide-react";
-import { useDialogState } from "../../hooks/useDialogState";
+import { useDialogState } from "../../../hooks/useDialogState";
 import { useEffect, useState } from "react";
-import { subscribe, unsubscribe } from "../../utils/events";
+import { subscribe, unsubscribe } from "../../../utils/events";
 import { JobStatus } from "./types";
 import { JobStatusMessage } from "./StatusMessage";
 import { JobStatusItemsContent } from "./StatusItemsContent/ItemsContent";

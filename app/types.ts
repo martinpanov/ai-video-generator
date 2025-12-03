@@ -5,6 +5,7 @@ export type Config = {
   clipSize?: string;
   zoomVideoEnabled?: boolean;
   transcribeVideoEnabled?: boolean;
+  splitVideo?: boolean;
 };
 
 export type RequiredConfig = Required<Config>;
