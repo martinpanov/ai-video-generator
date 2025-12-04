@@ -24,7 +24,7 @@ type FormDropdownAndCheckboxProps = {
     placeholder: string;
     data: string[];
   };
-  showWhenUnchecked?: boolean;
+  shouldShowDropdown?: boolean;
 };
 
 const FormDropdown = ({ label, field, defaultValue, placeholder, data }: FormDropdownProps) => {
@@ -46,9 +46,8 @@ const FormDropdown = ({ label, field, defaultValue, placeholder, data }: FormDro
   );
 };
 
-export const FormDropdownAndCheckbox = ({ checkboxField, checkboxLabel, state, dropdownDetails, showWhenUnchecked = false }: FormDropdownAndCheckboxProps) => {
+export const FormDropdownAndCheckbox = ({ checkboxField, checkboxLabel, state, dropdownDetails, shouldShowDropdown }: FormDropdownAndCheckboxProps) => {
   const [isChecked, setIsChecked] = useState(false);
-  const shouldShowDropdown = showWhenUnchecked ? !isChecked : isChecked;
 
   return (
     <>
@@ -58,7 +57,7 @@ export const FormDropdownAndCheckbox = ({ checkboxField, checkboxLabel, state, d
           <Label htmlFor={checkboxField}>{checkboxLabel}</Label>
         </div>
       </Field>
-      {shouldShowDropdown && (
+      {(shouldShowDropdown || !isChecked) && (
         <Field>
           <FormDropdown {...dropdownDetails} />
           {state?.[dropdownDetails.field] && (

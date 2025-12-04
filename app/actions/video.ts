@@ -58,9 +58,11 @@ export async function handleVideoSubmit(
     let jobId: string;
 
     const isVideoSocialMediaUrl = VIDEO_SOCIAL_MEDIA_URLS.some(url => data.videoUrl.includes(url));
+    const isCropEnabled = !data.zoomVideoEnabled && Boolean(data.clipSize);
     const pipelineType = getPipelineType({
       isZoomEnabled: data.zoomVideoEnabled,
       isCaptionEnabled: data.transcribeVideoEnabled,
+      isCropEnabled,
       videoType: isVideoSocialMediaUrl ? "VIDEO_SOCIAL_MEDIA" : "DIRECT"
     });
 

@@ -3,6 +3,32 @@ import { jobQueue } from "@/app/services/jobQueue";
 import { STATUS } from "@/app/constants";
 import { NextResponse } from "next/server";
 import { jobFind } from "@/app/repositories/jobRepository";
+import { handleDeleteVideo } from "@/app/services/steps/deleteVideoStep";
+
+async function handleJobFailure(jobId: string, error: any) {
+  if (!jobId) {
+    return;
+  }
+
+  try {
+    await prisma.job.update({
+      where: { id: jobId },
+      data: {
+        status: STATUS.FAILED,
+        failedStep: error.step || 'unknown',
+        errorMessage: error.message || 'Webhook processing failed'
+      }
+    });
+  } catch (updateError) {
+    console.error('Failed to update job status:', updateError);
+  }
+
+  try {
+    await handleDeleteVideo(jobId);
+  } catch (deleteError) {
+    console.error('Failed to delete video:', deleteError);
+  }
+}
 
 export async function POST(request: Request) {
   try {
@@ -33,18 +59,9 @@ export async function POST(request: Request) {
     console.error('Webhook processing failed:', error);
 
     const url = new URL(request.url);
-    const jobId = url.searchParams.get('jobId');
+    const jobId = url.searchParams.get('jobId') as string;
 
-    if (jobId) {
-      await prisma.job.update({
-        where: { id: jobId },
-        data: {
-          status: STATUS.FAILED,
-          failedStep: error.step || 'unknown',
-          errorMessage: error.message || 'Webhook processing failed'
-        }
-      });
-    }
+    await handleJobFailure(jobId, error);
 
     return NextResponse.json(
       { error: error.message || 'Webhook processing failed', step: error.step },

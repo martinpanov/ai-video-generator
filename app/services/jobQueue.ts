@@ -3,12 +3,15 @@ import { PIPELINES, STATUS, STEPS } from '../constants';
 import { jobFind, jobUpdate } from '../repositories/jobRepository';
 import { handleTranscribeStep } from './steps/transcribeStep';
 import { handleClipVideosStep } from './steps/clipVideosStep';
-import { handleClipDimensions } from './steps/clipDimensionsStep';
+import { handleFaceDetectionAndCrop } from './steps/faceDetectionAndCropStep';
 import { handleCaption } from './steps/captionClipStep';
+import { handleCropVideo } from './steps/cropVideoStep';
+import { handleDeleteVideo } from './steps/deleteVideoStep';
 
 class JobQueue {
   async completeStep(jobId: string, step: string, data: any) {
-    const remainOnSameStep = [STEPS.CLIP_VIDEO, STEPS.CALCULATE_CLIP_DIMENSIONS, STEPS.CAPTION_CLIP].some(repeatingStep => repeatingStep === step) && data?.response;
+    const remainOnSameStep = [STEPS.CLIP_VIDEO, STEPS.FACE_DETECTION_AND_CROP, STEPS.CROP_VIDEO, STEPS.CAPTION_CLIP]
+      .some(repeatingStep => repeatingStep === step) && data?.response;
 
     if (remainOnSameStep) {
       await this.triggerNextStep(jobId, step, data);
@@ -32,13 +35,20 @@ class JobQueue {
         await handleClipVideosStep(jobId, previousStepData);
         break;
 
-      case STEPS.CALCULATE_CLIP_DIMENSIONS:
-        await handleClipDimensions(jobId, previousStepData);
+      case STEPS.CROP_VIDEO:
+        await handleCropVideo(jobId, previousStepData);
+        break;
+
+      case STEPS.FACE_DETECTION_AND_CROP:
+        await handleFaceDetectionAndCrop(jobId, previousStepData);
         break;
 
       case STEPS.CAPTION_CLIP:
         await handleCaption(jobId, previousStepData);
         break;
+
+      case STEPS.DELETE_VIDEO:
+        await handleDeleteVideo(jobId);
     }
   }
 

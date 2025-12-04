@@ -11,8 +11,10 @@ export const STEPS = {
   TRANSCRIBE: "transcribe",
   CLIP_VIDEO: "clip-video",
   FINALIZE_CLIPS: "finalize-clips",
-  CALCULATE_CLIP_DIMENSIONS: "calculate-clip-dimensions",
-  CAPTION_CLIP: "caption-clip"
+  CROP_VIDEO: "crop-video",
+  FACE_DETECTION_AND_CROP: "face-detection-and-crop",
+  CAPTION_CLIP: "caption-clip",
+  DELETE_VIDEO: "delete-video"
 };
 
 export const STATUS = {
@@ -28,7 +30,8 @@ const COMMON_STEPS = [
 ];
 
 const VIDEO_SOCIAL_MEDIA_STEP = { step: STEPS.DOWNLOAD, subSteps: [], label: "Downloading Video" };
-const CLIP_DIMENSIONS_STEP = { step: STEPS.CALCULATE_CLIP_DIMENSIONS, subSteps: [], label: "Calculating Clip Dimensions" };
+const CROP_VIDEO_STEP = { step: STEPS.CROP_VIDEO, subSteps: [], label: "Calculating Clip Dimensions" };
+const FACE_DETECTION_AND_CROP_STEP = { step: STEPS.FACE_DETECTION_AND_CROP, subSteps: [], label: "Calculating Clip Dimensions" };
 const CAPTIONS_STEP = { step: STEPS.CAPTION_CLIP, subSteps: [], label: "Captioning Clip" };
 
 export const PIPELINES = {
@@ -36,36 +39,56 @@ export const PIPELINES = {
     VIDEO_SOCIAL_MEDIA_STEP,
     ...COMMON_STEPS
   ],
-  VIDEO_SOCIAL_MEDIA_ZOOM: [
+  VIDEO_SOCIAL_MEDIA_ZOOM_FACE: [
     VIDEO_SOCIAL_MEDIA_STEP,
     ...COMMON_STEPS,
-    CLIP_DIMENSIONS_STEP
+    FACE_DETECTION_AND_CROP_STEP
+  ],
+  VIDEO_SOCIAL_MEDIA_CROP: [
+    VIDEO_SOCIAL_MEDIA_STEP,
+    ...COMMON_STEPS,
+    CROP_VIDEO_STEP
   ],
   VIDEO_SOCIAL_MEDIA_CAPTION: [
     VIDEO_SOCIAL_MEDIA_STEP,
     ...COMMON_STEPS,
     CAPTIONS_STEP
   ],
-  VIDEO_SOCIAL_MEDIA_CAPTION_ZOOM: [
+  VIDEO_SOCIAL_MEDIA_CAPTION_ZOOM_FACE: [
     VIDEO_SOCIAL_MEDIA_STEP,
     ...COMMON_STEPS,
-    CLIP_DIMENSIONS_STEP,
+    FACE_DETECTION_AND_CROP_STEP,
+    CAPTIONS_STEP
+  ],
+  VIDEO_SOCIAL_MEDIA_CAPTION_CROP: [
+    VIDEO_SOCIAL_MEDIA_STEP,
+    ...COMMON_STEPS,
+    CROP_VIDEO_STEP,
     CAPTIONS_STEP
   ],
 
 
   DIRECT: COMMON_STEPS,
-  DIRECT_ZOOM: [
+  DIRECT_ZOOM_FACE: [
     ...COMMON_STEPS,
-    CLIP_DIMENSIONS_STEP
+    FACE_DETECTION_AND_CROP_STEP
+  ],
+  DIRECT_CROP: [
+    ...COMMON_STEPS,
+    CROP_VIDEO_STEP
   ],
   DIRECT_CAPTION: [
     ...COMMON_STEPS,
     CAPTIONS_STEP
   ],
-  DIRECT_CAPTION_ZOOM: [
+  DIRECT_CAPTION_ZOOM_FACE: [
     ...COMMON_STEPS,
-    CLIP_DIMENSIONS_STEP,
+    FACE_DETECTION_AND_CROP_STEP,
+    CAPTIONS_STEP
+  ],
+  DIRECT_CAPTION_CROP: [
+    ...COMMON_STEPS,
+    CROP_VIDEO_STEP,
     CAPTIONS_STEP
   ],
 };

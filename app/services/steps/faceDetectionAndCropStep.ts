@@ -1,12 +1,11 @@
 import { STATUS, STEPS, WEBHOOK_URL } from "@/app/constants";
 import { clipUpdate } from "@/app/repositories/clipRepository";
-import { getFormData } from "@/app/repositories/formRepository";
-import { getMetadata } from "@/app/repositories/metadataRepository";
 import { apiFetch } from "@/app/utils/api";
 import { Clip } from "@/generated/prisma/client";
 import { processClipsSequentially, resetClipsForNewStep } from "@/app/utils/clipProcessor";
 import { cutAndScale } from "../calculateClipDimensions/cutAndScale";
 import { toPublicUrl } from "@/app/utils/toPublicUrl";
+import { calculateClipDimensions } from "@/app/utils/calculateClipDimensions";
 
 function getMouthPosition(data: Record<string, any>) {
   const faceData = data.response.faceAnnotations[0];
@@ -24,7 +23,7 @@ async function requestFaceCordinates(clip: Clip, jobId: string) {
   await clipUpdate({
     clipId: clip.id,
     data: { status: STATUS.PROCESSING },
-    step: STEPS.CALCULATE_CLIP_DIMENSIONS
+    step: STEPS.FACE_DETECTION_AND_CROP
   });
 
   await apiFetch({
@@ -33,7 +32,7 @@ async function requestFaceCordinates(clip: Clip, jobId: string) {
     body: {
       video_url: clip.clipUrl,
       sample_frames: 100,
-      webhook_url: `${WEBHOOK_URL}?jobId=${jobId}&step=${STEPS.CALCULATE_CLIP_DIMENSIONS}`
+      webhook_url: `${WEBHOOK_URL}?jobId=${jobId}&step=${STEPS.FACE_DETECTION_AND_CROP}`
     }
   });
 }
@@ -43,22 +42,7 @@ async function handleDimensionsResponse(processingClip: Clip, previousStepData: 
 
   if (isFaceDetection) {
     const { x, y } = getMouthPosition(previousStepData);
-    const metadata = await getMetadata(jobId);
-    const formData = await getFormData(jobId);
-
-    const videoWidth = Number(metadata.response.width);
-    const videoHeight = Number(metadata.response.height);
-
-    const clipWidth = Number(formData.clipSize.split("x")[0]);
-    const clipHeight = Number(formData.clipSize.split("x")[1]);
-
-    const videoAspectRatio = videoWidth / videoHeight;
-    const clipAspectRatio = clipWidth / clipHeight;
-
-    const cropXWidth = Math.ceil(videoAspectRatio > clipAspectRatio ? videoHeight * clipAspectRatio : videoWidth);
-    const cropYHeight = Math.ceil(videoAspectRatio > clipAspectRatio ? videoHeight : videoWidth / clipAspectRatio);
-    const clipLeftXWidth = Math.ceil(Math.max(0, x - (cropXWidth / 2)));
-    const clipTopYHeight = Math.ceil(Math.max(0, y - (cropYHeight / 2)));
+    const { clipWidth, clipHeight, cropXWidth, cropYHeight, clipLeftXWidth, clipTopYHeight } = await calculateClipDimensions(jobId, x, y);
 
     await cutAndScale({
       clipUrl: processingClip.clipUrl!,
@@ -68,7 +52,8 @@ async function handleDimensionsResponse(processingClip: Clip, previousStepData: 
       cropYHeight,
       clipLeftXWidth,
       clipTopYHeight,
-      jobId
+      jobId,
+      step: STEPS.FACE_DETECTION_AND_CROP
     });
 
     return;
@@ -82,16 +67,16 @@ async function handleDimensionsResponse(processingClip: Clip, previousStepData: 
       clipUrl: scaledClipUrl,
       status: STATUS.COMPLETED
     },
-    step: STEPS.CALCULATE_CLIP_DIMENSIONS
+    step: STEPS.FACE_DETECTION_AND_CROP
   });
 }
 
-export async function handleClipDimensions(jobId: string, previousStepData?: any) {
-  await resetClipsForNewStep(jobId, STEPS.CALCULATE_CLIP_DIMENSIONS);
+export async function handleFaceDetectionAndCrop(jobId: string, previousStepData?: any) {
+  await resetClipsForNewStep(jobId, STEPS.FACE_DETECTION_AND_CROP);
 
   await processClipsSequentially({
     jobId,
-    step: STEPS.CALCULATE_CLIP_DIMENSIONS,
+    step: STEPS.FACE_DETECTION_AND_CROP,
     previousStepData,
     processClipFn: requestFaceCordinates,
     handleResponseFn: handleDimensionsResponse,

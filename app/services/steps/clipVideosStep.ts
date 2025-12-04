@@ -91,6 +91,4 @@ export async function handleClipVideosStep(jobId: string, previousStepData: any)
     handleResponseFn: handleClipResponse,
     additionalArgs: [mediaUrl, jobId]
   });
-
-  // await deleteVideo(mediaUrl);
 }

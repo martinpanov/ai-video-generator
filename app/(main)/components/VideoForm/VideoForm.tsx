@@ -14,15 +14,6 @@ import { VIDEO_DETAILS } from "../../../constants";
 
 const DROPDOWN_AND_CHECKBOX_DETAILS = [
   {
-    field: "video-duration",
-    label: "Video Duration",
-    defaultValue: "1 minute",
-    placeholder: "Select Video Duration",
-    data: VIDEO_DETAILS.VIDEOS_DURATION,
-    checkboxLabel: "Split Video Into Parts",
-    checkboxField: "split-video"
-  },
-  {
     field: "clip-size",
     label: "Clip Size",
     defaultValue: "1080x1920",
@@ -30,6 +21,15 @@ const DROPDOWN_AND_CHECKBOX_DETAILS = [
     data: VIDEO_DETAILS.VIDEOS_SIZES,
     checkboxLabel: "Zoom in on the person talking",
     checkboxField: "zoom"
+  },
+  {
+    field: "video-duration",
+    label: "Video Duration",
+    defaultValue: "1 minute",
+    placeholder: "Select Video Duration",
+    data: VIDEO_DETAILS.VIDEOS_DURATION,
+    checkboxLabel: "Split Video Into Parts",
+    checkboxField: "split-video"
   }
 ];
 
@@ -74,7 +74,7 @@ export const VideoForm = () => {
                 checkboxLabel={dropdownDetails.checkboxLabel}
                 state={state}
                 dropdownDetails={dropdownDetails}
-                showWhenUnchecked={dropdownDetails.field === "video-duration"}
+                shouldShowDropdown={dropdownDetails.field === "clip-size"}
               />
             ))}
             <Field>
