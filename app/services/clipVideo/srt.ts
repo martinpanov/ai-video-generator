@@ -1,12 +1,9 @@
-import { jobUpdate } from "@/app/repositories/jobRepository";
 import { apiFetch } from "../../utils/api";
 import { STEPS } from "@/app/constants";
 
-export async function getSrtTranscript(srtUrl: string, jobId: string) {
+export async function getSrtTranscript(srtUrl: string) {
   try {
     const data = await apiFetch({ endpoint: srtUrl, method: "GET", responseType: "text" });
-
-    await jobUpdate({ jobId, step: STEPS.CLIP_VIDEO, completedStep: "srtTranscript", data });
 
     return data;
   } catch (error) {

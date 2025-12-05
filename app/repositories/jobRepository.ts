@@ -7,14 +7,12 @@ export async function jobFind(jobId: string) {
 }
 
 export async function jobCreate({
-  data,
   step,
   completedStep,
   pipelineType,
   formData,
   userId
 }: {
-  data: any;
   step: string;
   completedStep?: string;
   pipelineType: PipelineType;
@@ -29,7 +27,6 @@ export async function jobCreate({
       status: STATUS.PROCESSING,
       currentStep: step,
       completedSteps: JSON.stringify(completedSteps),
-      stepData: JSON.stringify({ [completedStep || step]: data }),
       formData: JSON.stringify(formData || {}),
       userId
     }
@@ -38,12 +35,10 @@ export async function jobCreate({
 
 export async function jobUpdate({
   jobId,
-  data,
   step,
   completedStep = null
 }: {
   jobId: string;
-  data: any;
   step: string;
   completedStep: any;
 }) {
@@ -53,7 +48,6 @@ export async function jobUpdate({
     throw new Error(`Job ${jobId} not found`);
   }
 
-  const existingStepData = JSON.parse(job.stepData);
   const existingCompletedSteps = JSON.parse(job.completedSteps);
 
   let completedSteps = completedStep ? [...existingCompletedSteps, completedStep] : existingCompletedSteps;
@@ -62,11 +56,7 @@ export async function jobUpdate({
     where: { id: jobId },
     data: {
       currentStep: step,
-      completedSteps: JSON.stringify(completedSteps),
-      stepData: JSON.stringify({
-        ...existingStepData,
-        [completedStep]: data
-      })
+      completedSteps: JSON.stringify(completedSteps)
     }
   });
 }

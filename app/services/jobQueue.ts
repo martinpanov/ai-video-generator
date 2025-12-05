@@ -18,7 +18,7 @@ class JobQueue {
       return;
     }
 
-    await jobUpdate({ jobId, step, completedStep: step, data });
+    await jobUpdate({ jobId, step, completedStep: step });
 
     await this.progressToNextStep(jobId, data);
   }

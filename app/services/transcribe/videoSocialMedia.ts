@@ -13,7 +13,6 @@ type Params = {
 export async function requestVideoSocialMediaLink({ config, userId, pipelineType }: Params) {
   try {
     const job = await jobCreate({
-      data: { originalUrl: config.videoUrl },
       step: STEPS.DOWNLOAD,
       pipelineType,
       formData: config as RequiredConfig,

@@ -1,20 +1,36 @@
-import { jobFind } from "@/app/repositories/jobRepository";
-import { toPublicUrl } from "@/app/utils/toPublicUrl";
+import { videoFindByJob } from "@/app/repositories/videoRepository";
 import { STEPS } from "@/app/constants";
 import { apiFetch } from "@/app/utils/api";
 
+function extractTranscriptionId(url: string | null): string | null {
+  if (!url) return null;
+
+  const match = url.match(/\/([^\/]+)\.(txt|srt|json)$/);
+  return match ? match[1] : null;
+}
+
 export async function handleDeleteVideo(jobId: string) {
   try {
-    const job = await jobFind(jobId);
+    const video = await videoFindByJob(jobId);
 
-    if (!job) {
-      throw new Error(`Job ${jobId} not found`);
+    if (!video) {
+      throw new Error(`Video for job ${jobId} not found`);
     }
 
-    const stepData = JSON.parse(job.stepData);
-    const mediaUrl = toPublicUrl(stepData.download.response.media.media_url);
+    const transcriptionId =
+      extractTranscriptionId(video.srtUrl) ||
+      extractTranscriptionId(video.segmentsUrl) ||
+      extractTranscriptionId(video.textUrl);
 
-    apiFetch({ endpoint: "/v1/s3/delete", method: "POST", body: mediaUrl });
+    const body: any = {
+      video_url: video.videoUrl
+    };
+
+    if (transcriptionId) {
+      body.transcription_id = transcriptionId;
+    }
+
+    apiFetch({ endpoint: "/v1/video/delete", method: "POST", body });
   } catch (error) {
     console.error('Failed to delete video:', error);
 

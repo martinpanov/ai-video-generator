@@ -1,12 +1,16 @@
-import { jobFind } from "./jobRepository";
+import { videoFindByJob } from "./videoRepository";
 
 export async function getMetadata(jobId: string) {
-  const job = await jobFind(jobId);
+  const video = await videoFindByJob(jobId);
 
-  if (!job) {
-    throw new Error(`Job ${jobId} not found`);
+  if (!video) {
+    throw new Error(`Video for job ${jobId} not found`);
   }
 
-  const stepData = JSON.parse(job.stepData);
-  return stepData.metadata;
+  return {
+    response: {
+      width: video.videoWidth,
+      height: video.videoHeight
+    }
+  };
 }

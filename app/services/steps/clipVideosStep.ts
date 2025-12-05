@@ -9,13 +9,13 @@ import { clipVideo } from '../clipVideo/clipVideo';
 import { timeToSeconds } from '@/app/utils/timeToSeconds';
 import { Clip } from '@/generated/prisma/client';
 import { ClipData } from '@/app/types';
-import { deleteVideo } from '../clipVideo/deleteVideo';
 import { jobFind } from '@/app/repositories/jobRepository';
+import { videoFindByJob } from '@/app/repositories/videoRepository';
 import { processClipsSequentially } from '@/app/utils/clipProcessor';
 import { toPublicUrl } from '@/app/utils/toPublicUrl';
 
 async function identifyClips(jobId: string, previousStepData: any, userId: string) {
-  const srtData = await getSrtTranscript(toPublicUrl(previousStepData.response.srt_url), jobId);
+  const srtData = await getSrtTranscript(toPublicUrl(previousStepData.response.srt_url));
   // await getWordTimestamps(toPublicUrl(previousStepData.response.segments_url), jobId);
 
   const { videosAmount, videoDuration, splitVideo } = await getFormData(jobId);
@@ -74,8 +74,11 @@ export async function handleClipVideosStep(jobId: string, previousStepData: any)
     throw new Error(`Job ${jobId} not found`);
   }
 
-  const stepData = JSON.parse(job.stepData);
-  const mediaUrl = toPublicUrl(stepData.download.response.media.media_url);
+  const video = await videoFindByJob(jobId);
+
+  if (!video) {
+    throw new Error(`Video for job ${jobId} not found`);
+  }
 
   const clips = await clipFindByJob(jobId);
 
@@ -89,6 +92,6 @@ export async function handleClipVideosStep(jobId: string, previousStepData: any)
     previousStepData,
     processClipFn: processClip,
     handleResponseFn: handleClipResponse,
-    additionalArgs: [mediaUrl, jobId]
+    additionalArgs: [video.videoUrl, jobId]
   });
 }

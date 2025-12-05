@@ -10,9 +10,9 @@ async function deleteClipFromS3(clipUrl: string | null) {
 
   try {
     await apiFetch({
-      endpoint: "/v1/s3/delete",
+      endpoint: "/v1/clips/delete",
       method: "POST",
-      body: clipUrl
+      body: { clip_url: clipUrl }
     });
   } catch (error) {
     console.error('Failed to delete clip from S3:', error);
