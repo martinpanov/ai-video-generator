@@ -1,9 +1,16 @@
 import { prisma } from "../lib/db";
 import { STATUS } from "../constants";
 import { PipelineType } from "@/generated/prisma/enums";
+import { FormDataType } from "../types";
 
 export async function jobFind(jobId: string) {
-  return prisma.job.findUnique({ where: { id: jobId } });
+  const job = await prisma.job.findUnique({ where: { id: jobId } });
+
+  if (!job) {
+    throw new Error(`Job ${jobId} not found`);
+  }
+
+  return job;
 }
 
 export async function jobCreate({
@@ -16,7 +23,7 @@ export async function jobCreate({
   step: string;
   completedStep?: string;
   pipelineType: PipelineType;
-  formData?: { videoUrl: string; videosAmount: number; videoDuration: string; };
+  formData?: FormDataType;
   userId: string;
 }) {
   const completedSteps = completedStep ? [completedStep] : [];
@@ -43,11 +50,6 @@ export async function jobUpdate({
   completedStep: any;
 }) {
   const job = await jobFind(jobId);
-
-  if (!job) {
-    throw new Error(`Job ${jobId} not found`);
-  }
-
   const existingCompletedSteps = JSON.parse(job.completedSteps);
 
   let completedSteps = completedStep ? [...existingCompletedSteps, completedStep] : existingCompletedSteps;

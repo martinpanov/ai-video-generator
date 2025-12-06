@@ -1,11 +1,11 @@
 import { STEPS, WEBHOOK_URL } from "@/app/constants";
 import { apiFetch } from "../../utils/api";
 import { jobCreate } from "@/app/repositories/jobRepository";
-import { Config, RequiredConfig } from "@/app/types";
+import { FormDataType, RequiredFormDataType } from "@/app/types";
 import { PipelineType } from "@/generated/prisma/enums";
 
 type Params = {
-  config: Config;
+  config: FormDataType;
   userId: string;
   pipelineType: PipelineType;
 };
@@ -15,7 +15,7 @@ export async function requestVideoSocialMediaLink({ config, userId, pipelineType
     const job = await jobCreate({
       step: STEPS.DOWNLOAD,
       pipelineType,
-      formData: config as RequiredConfig,
+      formData: config as RequiredFormDataType,
       userId
     });
 

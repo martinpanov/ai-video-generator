@@ -18,7 +18,7 @@ export default async function Clips(props: { searchParams: SearchParams; }) {
   );
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto p-10">
       <DataTable
         columns={columns}
         data={clips}

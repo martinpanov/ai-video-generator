@@ -55,5 +55,9 @@ export const verifySession = cache(async () => {
 
   const userId = session?.userId as string;
 
-  return userId || null;
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  return userId;
 });

@@ -41,7 +41,13 @@ export async function videoUpdate({
 }
 
 export async function videoFindByJob(jobId: string) {
-  return prisma.video.findUnique({
+  const video = await prisma.video.findUnique({
     where: { jobId }
   });
+
+  if (!video) {
+    throw new Error(`Video for job ${jobId} not found`);
+  }
+
+  return video;
 }

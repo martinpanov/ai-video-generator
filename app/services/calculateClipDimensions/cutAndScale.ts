@@ -50,6 +50,7 @@ export async function cutAndScale(params: CutAndScaleParams) {
         ]
       }
     ],
+    delete_input: true,
     webhook_url: `${WEBHOOK_URL}?jobId=${jobId}&step=${step}`
   };
 

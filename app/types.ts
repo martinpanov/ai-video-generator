@@ -1,4 +1,4 @@
-export type Config = {
+export type FormDataType = {
   videoUrl: string;
   videosAmount?: number;
   videoDuration?: string;
@@ -8,7 +8,7 @@ export type Config = {
   splitVideo?: boolean;
 };
 
-export type RequiredConfig = Required<Config>;
+export type RequiredFormDataType = Required<FormDataType>;
 
 export type ClipData = {
   clip: string;

@@ -1,6 +1,7 @@
 import { videoFindByJob } from "@/app/repositories/videoRepository";
-import { STEPS } from "@/app/constants";
+import { STATUS, STEPS } from "@/app/constants";
 import { apiFetch } from "@/app/utils/api";
+import { prisma } from "@/app/lib/db";
 
 function extractTranscriptionId(url: string | null): string | null {
   if (!url) return null;
@@ -12,11 +13,6 @@ function extractTranscriptionId(url: string | null): string | null {
 export async function handleDeleteVideo(jobId: string) {
   try {
     const video = await videoFindByJob(jobId);
-
-    if (!video) {
-      throw new Error(`Video for job ${jobId} not found`);
-    }
-
     const transcriptionId =
       extractTranscriptionId(video.srtUrl) ||
       extractTranscriptionId(video.segmentsUrl) ||

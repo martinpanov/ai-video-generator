@@ -21,6 +21,7 @@ export async function captionVideo(clip: Clip, jobId: string) {
       font_family: "The Bold Font",
       position: "bottom_center"
     },
+    delete_input: true,
     webhook_url: `${WEBHOOK_URL}?jobId=${jobId}&step=${STEPS.CAPTION_CLIP}`
   };
 

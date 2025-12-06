@@ -16,7 +16,7 @@ async function processClip(clip: Clip, jobId: string) {
 }
 
 async function handleClipResponse(processingClip: Clip, previousStepData: any) {
-  const clipUrl = toPublicUrl(previousStepData.response);
+  const clipUrl = toPublicUrl(previousStepData.response.file_url);
 
   await clipUpdate({
     clipId: processingClip.id,

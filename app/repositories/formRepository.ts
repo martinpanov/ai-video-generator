@@ -1,12 +1,7 @@
-import { Config } from "../types";
+import { RequiredFormDataType } from "../types";
 import { jobFind } from "./jobRepository";
 
-export async function getFormData(jobId: string): Promise<Required<Config>> {
+export async function getFormData(jobId: string): Promise<RequiredFormDataType> {
   const job = await jobFind(jobId);
-
-  if (!job) {
-    throw new Error(`Job ${jobId} not found`);
-  }
-
   return JSON.parse(job.formData);
 }

@@ -54,30 +54,30 @@ class JobQueue {
 
   private async progressToNextStep(jobId: string, previousStepData: any) {
     const job = await jobFind(jobId);
-
-    if (!job) {
-      throw new Error(`Job ${jobId} not found`);
-    }
-
     const pipeline = PIPELINES[job.pipelineType];
     const completedSteps = JSON.parse(job.completedSteps);
 
     const nextStep = pipeline.find(s => !completedSteps.includes(s.step));
 
-    if (nextStep) {
+    if (!nextStep) {
       await prisma.job.update({
         where: { id: jobId },
-        data: { currentStep: nextStep.step }
+        data: { status: STATUS.COMPLETED }
       });
-
-      await this.triggerNextStep(jobId, nextStep.step, previousStepData);
       return;
     }
 
+    const isDeleteStep = nextStep.step === STEPS.DELETE_VIDEO;
+
     await prisma.job.update({
       where: { id: jobId },
-      data: { status: STATUS.COMPLETED }
+      data: {
+        currentStep: nextStep.step,
+        ...(isDeleteStep && { status: STATUS.COMPLETED })
+      }
     });
+
+    await this.triggerNextStep(jobId, nextStep.step, previousStepData);
   }
 }
 

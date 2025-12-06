@@ -2,7 +2,6 @@ import { prisma } from "@/app/lib/db";
 import { jobQueue } from "@/app/services/jobQueue";
 import { STATUS } from "@/app/constants";
 import { NextResponse } from "next/server";
-import { jobFind } from "@/app/repositories/jobRepository";
 import { handleDeleteVideo } from "@/app/services/steps/deleteVideoStep";
 
 async function handleJobFailure(jobId: string, error: any) {
@@ -46,7 +45,7 @@ export async function POST(request: Request) {
       throw err;
     }
 
-    const job = await jobFind(jobId);
+    const job = await prisma.job.findUnique({ where: { id: jobId } });
 
     if (!job) {
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });

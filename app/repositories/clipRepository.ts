@@ -5,10 +5,12 @@ import { Clip } from "@/generated/prisma/client";
 
 export async function clipCreate({
   clipData,
+  videoUrl,
   jobId,
   userId
 }: {
   clipData: ClipData;
+  videoUrl: string;
   jobId: string;
   userId: string;
 }) {
@@ -19,6 +21,7 @@ export async function clipCreate({
         description: clipData.description,
         post: clipData.post,
         clip: clipData.clip,
+        originalVideoUrl: videoUrl,
         timeStart: clipData.timeStart,
         timeEnd: clipData.timeEnd,
         status: STATUS.PENDING,
@@ -81,7 +84,7 @@ export async function clipFindByUser(
   const [clips, totalCount] = await Promise.all([
     prisma.clip.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { updatedAt: 'desc' },
       skip,
       take: pageSize
     }),
@@ -93,7 +96,7 @@ export async function clipFindByUser(
   return {
     clips,
     totalCount,
-    totalPages: Math.ceil(totalCount / pageSize),
+    totalPages: Math.ceil(totalCount / pageSize) || 1,
     currentPage: page
   };
 }

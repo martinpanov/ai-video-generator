@@ -1,4 +1,4 @@
-import { PIPELINES, STATUS } from "@/app/constants";
+import { PIPELINES, STATUS, STEPS } from "@/app/constants";
 import { ItemSkeleton } from "./ItemSkeleton";
 import { JobStatusItem } from "./Item";
 import { JobStatus } from "../types";
@@ -28,6 +28,11 @@ export const JobStatusItemsContent = ({ jobStatus }: { jobStatus: JobStatus | nu
   if (steps.length !== 0) {
     return steps.map(({ step, label, subSteps }) => {
       const status = getStepStatus({ jobStatus, step, subSteps: subSteps || [] });
+
+      if (step === STEPS.DELETE_VIDEO) {
+        return;
+      }
+
       return <JobStatusItem key={step} status={status} label={label} />;
     });
   }

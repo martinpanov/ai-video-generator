@@ -21,11 +21,6 @@ async function deleteClipFromS3(clipUrl: string | null) {
 
 export async function deleteClip(clipId: string) {
   const userId = await verifySession();
-
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
-
   const clip = await prisma.clip.findUnique({
     where: { id: clipId },
   });
@@ -46,12 +41,7 @@ export async function deleteClip(clipId: string) {
 }
 
 export async function deleteMultipleClips(clipIds: string[]) {
-  const userId = await verifySession();
-
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
-
+  const userId = await verifySession() || "";
   const clips = await prisma.clip.findMany({
     where: {
       id: { in: clipIds },

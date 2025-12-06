@@ -143,6 +143,11 @@ export const columns: ColumnDef<Clip>[] = [
     },
   },
   {
+    accessorKey: "originalVideoUrl",
+    header: "Original Video URL",
+    cell: ({ row }) => row.getValue("originalVideoUrl")
+  },
+  {
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {

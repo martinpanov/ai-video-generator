@@ -10,15 +10,23 @@ import { timeToSeconds } from '@/app/utils/timeToSeconds';
 import { Clip } from '@/generated/prisma/client';
 import { ClipData } from '@/app/types';
 import { jobFind } from '@/app/repositories/jobRepository';
-import { videoFindByJob } from '@/app/repositories/videoRepository';
+import { videoFindByJob, videoUpdate } from '@/app/repositories/videoRepository';
 import { processClipsSequentially } from '@/app/utils/clipProcessor';
 import { toPublicUrl } from '@/app/utils/toPublicUrl';
 
 async function identifyClips(jobId: string, previousStepData: any, userId: string) {
+  await videoUpdate({
+    jobId,
+    data: {
+      srtUrl: toPublicUrl(previousStepData.response.srt_url),
+      textUrl: toPublicUrl(previousStepData.response.text_url),
+      segmentsUrl: toPublicUrl(previousStepData.response.segments_url)
+    }
+  });
+
   const srtData = await getSrtTranscript(toPublicUrl(previousStepData.response.srt_url));
   // await getWordTimestamps(toPublicUrl(previousStepData.response.segments_url), jobId);
-
-  const { videosAmount, videoDuration, splitVideo } = await getFormData(jobId);
+  const { videosAmount, videoDuration, splitVideo, videoUrl } = await getFormData(jobId);
   const data = await aiCommunication({ videosAmount, videoDuration, splitVideo, srtData });
   const clipsData: ClipData[] = parseAiResponse(data.content);
 
@@ -26,6 +34,7 @@ async function identifyClips(jobId: string, previousStepData: any, userId: strin
     clipsData.map((clipData) =>
       clipCreate({
         clipData,
+        videoUrl,
         jobId,
         userId
       })
@@ -69,17 +78,7 @@ async function handleClipResponse(processingClip: Clip, previousStepData: any) {
 
 export async function handleClipVideosStep(jobId: string, previousStepData: any) {
   const job = await jobFind(jobId);
-
-  if (!job) {
-    throw new Error(`Job ${jobId} not found`);
-  }
-
   const video = await videoFindByJob(jobId);
-
-  if (!video) {
-    throw new Error(`Video for job ${jobId} not found`);
-  }
-
   const clips = await clipFindByJob(jobId);
 
   if (clips.length === 0) {

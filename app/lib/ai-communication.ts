@@ -1,8 +1,8 @@
 import { Anthropic } from '@anthropic-ai/sdk';
 import { STEPS } from '../constants';
-import { RequiredConfig } from '../types';
+import { RequiredFormDataType } from '../types';
 
-type Params = Pick<RequiredConfig, "videosAmount" | "videoDuration" | "splitVideo"> & {
+type Params = Pick<RequiredFormDataType, "videosAmount" | "videoDuration" | "splitVideo"> & {
   srtData: string;
 };
 

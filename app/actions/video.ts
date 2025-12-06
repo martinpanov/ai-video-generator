@@ -69,7 +69,7 @@ export async function handleVideoSubmit(
     if (isVideoSocialMediaUrl) {
       jobId = await requestVideoSocialMediaLink({ config: data, userId, pipelineType });
     } else {
-      jobId = await generateMetadata({ config: data, userId, pipelineType });
+      jobId = await generateMetadata({ formData: data, userId, pipelineType, videoUrl: data.videoUrl });
       await generateTranscript(data.videoUrl, jobId);
     }
 
