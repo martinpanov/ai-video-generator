@@ -1,7 +1,7 @@
 import { apiFetch } from "../../utils/api";
 import { jobCreate, jobUpdate } from "../../repositories/jobRepository";
 import { videoCreate } from "../../repositories/videoRepository";
-import { FormDataType, RequiredFormDataType } from "@/app/types";
+import { FormDataType, RequiredFormDataType, StepError } from "@/app/types";
 import { STEPS } from "@/app/constants";
 import { PipelineType } from "@/generated/prisma/enums";
 
@@ -48,9 +48,6 @@ export async function generateMetadata({ formData, existingJobId, userId, pipeli
     return job.id;
   } catch (error) {
     console.error('Failed to get metadata:', error);
-
-    const err = new Error('Failed to get video metadata');
-    (err as any).step = STEPS.TRANSCRIBE;
-    throw err;
+    throw new StepError('Failed to get video metadata', STEPS.TRANSCRIBE);
   }
 }

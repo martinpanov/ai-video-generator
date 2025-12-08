@@ -26,7 +26,7 @@ export async function GET(request: Request) {
       deleted: result.count,
       message: `Deleted ${result.count} failed jobs older than 1 hour`
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to cleanup jobs:', error);
     return NextResponse.json(
       { error: 'Failed to cleanup jobs' },

@@ -1,5 +1,6 @@
 import { STEPS, WEBHOOK_URL } from "@/app/constants";
 import { apiFetch } from "../../utils/api";
+import { StepError } from "@/app/types";
 
 export async function generateTranscript(mediaUrl: string, jobId: string) {
   const payload = {
@@ -19,9 +20,6 @@ export async function generateTranscript(mediaUrl: string, jobId: string) {
     return apiFetch({ endpoint: "/v1/media/transcribe", method: "POST", body: payload });
   } catch (error) {
     console.error('Failed to generate transcript:', error);
-
-    const err = new Error('Failed to generate transcript');
-    (err as any).step = STEPS.TRANSCRIBE;
-    throw err;
+    throw new StepError('Failed to generate transcript', STEPS.TRANSCRIBE);
   }
 }

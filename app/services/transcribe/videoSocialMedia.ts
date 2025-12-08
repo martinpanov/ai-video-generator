@@ -1,7 +1,7 @@
 import { STEPS, WEBHOOK_URL } from "@/app/constants";
 import { apiFetch } from "../../utils/api";
 import { jobCreate } from "@/app/repositories/jobRepository";
-import { FormDataType, RequiredFormDataType } from "@/app/types";
+import { FormDataType, RequiredFormDataType, StepError } from "@/app/types";
 import { PipelineType } from "@/generated/prisma/enums";
 
 type Params = {
@@ -31,9 +31,6 @@ export async function requestVideoSocialMediaLink({ config, userId, pipelineType
     return job.id;
   } catch (error) {
     console.error('Failed to request link:', error);
-
-    const err = new Error('Failed to download video');
-    (err as any).step = STEPS.DOWNLOAD;
-    throw err;
+    throw new StepError('Failed to download video', STEPS.DOWNLOAD);
   }
 }

@@ -91,7 +91,7 @@ export function DataTable<TData, TValue>({
       toast.dismiss(loadingToast);
       toast.success(`Successfully deleted ${result.count} clip(s)`);
       setRowSelection({});
-    } catch (error) {
+    } catch {
       toast.dismiss(loadingToast);
       toast.error("Failed to delete clips");
     }

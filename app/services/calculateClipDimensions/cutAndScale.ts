@@ -1,5 +1,6 @@
-import { STEPS, WEBHOOK_URL } from "@/app/constants";
+import { WEBHOOK_URL } from "@/app/constants";
 import { apiFetch } from "@/app/utils/api";
+import { StepError } from "@/app/types";
 
 type CutAndScaleParams = {
   clipUrl: string;
@@ -58,9 +59,6 @@ export async function cutAndScale(params: CutAndScaleParams) {
     return apiFetch({ endpoint: "/v1/ffmpeg/compose", method: "POST", body: payload });
   } catch (error) {
     console.error('Failed to cut and scale video:', error);
-
-    const err = new Error('Failed to cut and scale video');
-    (err as any).step = step;
-    throw err;
+    throw new StepError('Failed to cut and scale video', step);
   }
 }

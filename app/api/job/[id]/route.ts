@@ -22,7 +22,7 @@ export async function GET(
       step: job.status === STATUS.FAILED ? job.failedStep : job.currentStep,
       error: job.status === STATUS.FAILED ? job.errorMessage : null
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch job:', error);
     return NextResponse.json(
       { error: 'Failed to fetch job', step: null },

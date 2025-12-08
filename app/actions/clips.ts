@@ -5,14 +5,12 @@ import { verifySession } from "../lib/session";
 import { revalidatePath } from "next/cache";
 import { apiFetch } from "../utils/api";
 
-async function deleteClipFromS3(clipUrl: string | null) {
-  if (!clipUrl) return;
-
+async function deleteClipFromS3(clipUrl: string | null, thumbnailUrl: string | null) {
   try {
     await apiFetch({
       endpoint: "/v1/clips/delete",
       method: "POST",
-      body: { clip_url: clipUrl }
+      body: { clip_url: clipUrl, thumbnail_url: thumbnailUrl }
     });
   } catch (error) {
     console.error('Failed to delete clip from S3:', error);
@@ -29,7 +27,7 @@ export async function deleteClip(clipId: string) {
     throw new Error("Clip not found or unauthorized");
   }
 
-  await deleteClipFromS3(clip.clipUrl);
+  await deleteClipFromS3(clip.clipUrl, clip.thumbnailUrl);
 
   await prisma.clip.delete({
     where: { id: clipId },
@@ -54,7 +52,7 @@ export async function deleteMultipleClips(clipIds: string[]) {
   }
 
   await Promise.all(
-    clips.map(clip => deleteClipFromS3(clip.clipUrl))
+    clips.map(clip => deleteClipFromS3(clip.clipUrl, clip.thumbnailUrl))
   );
 
   await prisma.clip.deleteMany({

@@ -29,8 +29,6 @@ export const StatusDialog = () => {
   }, []);
 
   useEffect(() => {
-    setJobStatus(null);
-
     if (!jobId || !isOpen) {
       return;
     };

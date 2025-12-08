@@ -1,6 +1,6 @@
 import { prisma } from "../lib/db";
 import { STATUS, STEPS } from "@/app/constants";
-import { ClipData } from "../types";
+import { ClipData, StepError } from "../types";
 import { Clip } from "@/generated/prisma/client";
 
 export async function clipCreate({
@@ -31,10 +31,7 @@ export async function clipCreate({
     });
   } catch (error) {
     console.error('Failed to create clip:', error);
-
-    const err = new Error('Failed to create clip');
-    (err as any).step = STEPS.CLIP_VIDEO;
-    throw err;
+    throw new StepError('Failed to create clip', STEPS.CLIP_VIDEO);
   }
 }
 
@@ -54,10 +51,7 @@ export async function clipUpdate({
     });
   } catch (error) {
     console.error('Failed to update clip:', error);
-
-    const err = new Error('Failed to update clip');
-    (err as any).step = step;
-    throw err;
+    throw new StepError('Failed to update clip', step);
   }
 }
 

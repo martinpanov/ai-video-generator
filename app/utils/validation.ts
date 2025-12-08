@@ -1,3 +1,19 @@
+type ValidationConfig = {
+  value: any;
+  message: string;
+};
+
+type ValidationSchema<T> = {
+  [K in keyof T]?: {
+    minLength?: ValidationConfig;
+    regex?: ValidationConfig;
+    isEqualTo?: ValidationConfig;
+    min?: ValidationConfig;
+    max?: ValidationConfig;
+    skip?: object;
+  };
+};
+
 const validationHandler: Record<string, (configValue: any, inputValue: any) => boolean> = {
   minLength: (minLength: number, value: string) => value.length < minLength,
   regex: (regex: RegExp, value: string) => !regex.test(value),
@@ -6,19 +22,22 @@ const validationHandler: Record<string, (configValue: any, inputValue: any) => b
   max: (number: number, value) => value > number,
 };
 
-export function validation(data: Record<string, any>, validationSchema: any) {
-  const errors: Record<string, string> = {};
+export function validation<T extends Record<string, unknown>>(
+  data: T,
+  validationSchema: ValidationSchema<T>
+) {
+  const errors: Partial<Record<keyof T, string>> = {};
 
-  Object.entries(data).forEach(([key, value]) => {
-    const schema = validationSchema[key as keyof typeof validationSchema];
+  (Object.entries(data) as [keyof T, any][]).forEach(([key, value]) => {
+    const schema = validationSchema[key];
 
     if (!schema) {
       return;
-    };
+    }
 
     if (schema.skip) {
       const shouldSkip = Object.entries(schema.skip).some(([skipKey, skipValue]) => {
-        return data[skipKey] === skipValue;
+        return data[skipKey as keyof T] === skipValue;
       });
 
       if (shouldSkip) {
@@ -26,14 +45,14 @@ export function validation(data: Record<string, any>, validationSchema: any) {
       }
     }
 
-    Object.entries(schema).forEach(([validationType, config]: [string, any]) => {
+    Object.entries(schema).forEach(([validationType, config]) => {
       if (validationType === 'skip') {
         return;
       }
 
-      const handler = validationHandler[validationType as keyof typeof validationHandler];
+      const handler = validationHandler[validationType];
 
-      if (handler) {
+      if (handler && config && typeof config === 'object' && 'value' in config) {
         const isInvalid = handler(config.value, value);
         if (isInvalid) {
           errors[key] = config.message;

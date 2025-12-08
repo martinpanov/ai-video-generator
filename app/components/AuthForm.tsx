@@ -16,7 +16,7 @@ type Props = {
 export const AuthForm = ({ callToAction, type }: Props) => {
   const isLogin = type === "Login";
   const authAction = isLogin ? login : register;
-  const [state, action, pending] = useActionState(authAction, undefined);
+  const [state, action, pending] = useActionState<Record<string, string> | undefined, FormData>(authAction, undefined);
 
   return (
     <Card className="w-sm">

@@ -1,6 +1,6 @@
-export function parseAiResponse(response: any) {
+export function parseAiResponse(response: Array<{ type: string; text?: string; }>) {
   // Filter out thinking blocks and find the text content
-  const textBlock = response.find((block: any) => block.type === 'text');
+  const textBlock = response.find(block => block.type === 'text');
 
   if (!textBlock?.text) {
     throw new Error('No text content found in AI response');

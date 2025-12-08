@@ -4,7 +4,6 @@ import { getFormData } from '@/app/repositories/formRepository';
 import { clipCreate, clipUpdate, clipFindByJob } from '@/app/repositories/clipRepository';
 import { parseAiResponse } from '@/app/utils/parseAiResponse';
 import { getSrtTranscript } from '../clipVideo/srt';
-import { getWordTimestamps } from '../clipVideo/wordTimestamps';
 import { clipVideo } from '../clipVideo/clipVideo';
 import { timeToSeconds } from '@/app/utils/timeToSeconds';
 import { Clip } from '@/generated/prisma/client';
@@ -14,7 +13,22 @@ import { videoFindByJob, videoUpdate } from '@/app/repositories/videoRepository'
 import { processClipsSequentially } from '@/app/utils/clipProcessor';
 import { toPublicUrl } from '@/app/utils/toPublicUrl';
 
-async function identifyClips(jobId: string, previousStepData: any, userId: string) {
+type TranscribeResponseData = {
+  response: {
+    srt_url: string;
+    text_url: string;
+    segments_url: string;
+  };
+};
+
+type ClipVideoResponseData = {
+  response: Array<{
+    file_url: string;
+    thumbnail_url: string;
+  }>;
+};
+
+async function identifyClips(jobId: string, previousStepData: TranscribeResponseData, userId: string) {
   await videoUpdate({
     jobId,
     data: {
@@ -61,9 +75,10 @@ async function processClip(clip: Clip, mediaUrl: string, jobId: string) {
   });
 }
 
-async function handleClipResponse(processingClip: Clip, previousStepData: any) {
-  const clipUrl = toPublicUrl(previousStepData.response[0].file_url);
-  const thumbnailUrl = toPublicUrl(previousStepData.response[0].thumbnail_url);
+async function handleClipResponse(processingClip: Clip, previousStepData: TranscribeResponseData | ClipVideoResponseData) {
+  const clipData = previousStepData as ClipVideoResponseData;
+  const clipUrl = toPublicUrl(clipData.response[0].file_url);
+  const thumbnailUrl = toPublicUrl(clipData.response[0].thumbnail_url);
 
   await clipUpdate({
     clipId: processingClip.id,
@@ -76,19 +91,19 @@ async function handleClipResponse(processingClip: Clip, previousStepData: any) {
   });
 }
 
-export async function handleClipVideosStep(jobId: string, previousStepData: any) {
+export async function handleClipVideosStep(jobId: string, previousStepData: Record<string, unknown>) {
   const job = await jobFind(jobId);
   const video = await videoFindByJob(jobId);
   const clips = await clipFindByJob(jobId);
 
   if (clips.length === 0) {
-    await identifyClips(jobId, previousStepData, job.userId);
+    await identifyClips(jobId, previousStepData as TranscribeResponseData, job.userId);
   }
 
   await processClipsSequentially({
     jobId,
     step: STEPS.CLIP_VIDEO,
-    previousStepData,
+    previousStepData: previousStepData as TranscribeResponseData | ClipVideoResponseData,
     processClipFn: processClip,
     handleResponseFn: handleClipResponse,
     additionalArgs: [video.videoUrl, jobId]

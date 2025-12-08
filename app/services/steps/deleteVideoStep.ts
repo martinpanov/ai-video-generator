@@ -1,7 +1,8 @@
 import { videoFindByJob } from "@/app/repositories/videoRepository";
-import { STATUS, STEPS } from "@/app/constants";
+import { STEPS } from "@/app/constants";
 import { apiFetch } from "@/app/utils/api";
 import { prisma } from "@/app/lib/db";
+import { StepError } from "@/app/types";
 
 function extractTranscriptionId(url: string | null): string | null {
   if (!url) return null;
@@ -18,20 +19,15 @@ export async function handleDeleteVideo(jobId: string) {
       extractTranscriptionId(video.segmentsUrl) ||
       extractTranscriptionId(video.textUrl);
 
-    const body: any = {
-      video_url: video.videoUrl
+    const body = {
+      video_url: video.videoUrl,
+      ...(transcriptionId && { transcription_id: transcriptionId })
     };
 
-    if (transcriptionId) {
-      body.transcription_id = transcriptionId;
-    }
-
     apiFetch({ endpoint: "/v1/video/delete", method: "POST", body });
+    await prisma.video.delete({ where: { id: video.id } });
   } catch (error) {
     console.error('Failed to delete video:', error);
-
-    const err = new Error('Failed to delete video');
-    (err as any).step = STEPS.DELETE_VIDEO;
-    throw err;
+    throw new StepError('Failed to delete video', STEPS.DELETE_VIDEO);
   }
 }

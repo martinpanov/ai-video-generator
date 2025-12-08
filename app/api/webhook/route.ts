@@ -3,8 +3,9 @@ import { jobQueue } from "@/app/services/jobQueue";
 import { STATUS } from "@/app/constants";
 import { NextResponse } from "next/server";
 import { handleDeleteVideo } from "@/app/services/steps/deleteVideoStep";
+import { StepError } from "@/app/types";
 
-async function handleJobFailure(jobId: string, error: any) {
+async function handleJobFailure(jobId: string, error: StepError) {
   if (!jobId) {
     return;
   }
@@ -14,8 +15,8 @@ async function handleJobFailure(jobId: string, error: any) {
       where: { id: jobId },
       data: {
         status: STATUS.FAILED,
-        failedStep: error.step || 'unknown',
-        errorMessage: error.message || 'Webhook processing failed'
+        failedStep: error.step,
+        errorMessage: error.message
       }
     });
   } catch (updateError) {
@@ -39,10 +40,7 @@ export async function POST(request: Request) {
 
     if (webhookData.code !== 200 && webhookData.code !== 202) {
       console.error('Failed to retrieve data from webhook call:', webhookData.message);
-
-      const err = new Error('Failed to retrieve data from webhook call');
-      (err as any).step = step;
-      throw err;
+      throw new StepError('Failed to retrieve data from webhook call', step);
     }
 
     const job = await prisma.job.findUnique({ where: { id: jobId } });
@@ -54,16 +52,20 @@ export async function POST(request: Request) {
     await jobQueue.completeStep(jobId, step, webhookData);
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Webhook processing failed:', error);
 
     const url = new URL(request.url);
     const jobId = url.searchParams.get('jobId') as string;
+    const stepError = error as StepError;
 
-    await handleJobFailure(jobId, error);
+    await handleJobFailure(jobId, stepError);
 
     return NextResponse.json(
-      { error: error.message || 'Webhook processing failed', step: error.step },
+      {
+        error: stepError.message,
+        step: stepError.step
+      },
       { status: 500 }
     );
   }

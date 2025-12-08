@@ -1,30 +1,27 @@
 import { RequestInit } from "next/dist/server/web/spec-extension/request";
 import { PROD_URL } from "../constants";
 
-type Params = {
+type Params<T extends Record<string, unknown>> = {
   endpoint: string;
   method: "GET" | "PUT" | "POST" | "DELETE";
-  body?: any;
+  body?: T;
   responseType?: "json" | "text";
 };
 
-export async function apiFetch({
+export async function apiFetch<T extends Record<string, unknown>>({
   endpoint,
   method = "GET",
   body,
   responseType = "json"
-}: Params) {
-  let requestData: RequestInit = {
+}: Params<T>) {
+  const requestData: RequestInit = {
     method: method,
     headers: {
       "x-api-key": process.env.API_KEY || '',
       "Content-Type": "application/json"
-    }
+    },
+    ...(body && { body: JSON.stringify(body) })
   };
-
-  if (body) {
-    requestData.body = JSON.stringify(body);
-  }
 
   const response = await fetch(endpoint?.includes("http") ? endpoint : `${PROD_URL}${endpoint}`, requestData);
 

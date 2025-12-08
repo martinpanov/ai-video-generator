@@ -9,7 +9,7 @@ import { handleCropVideo } from './steps/cropVideoStep';
 import { handleDeleteVideo } from './steps/deleteVideoStep';
 
 class JobQueue {
-  async completeStep(jobId: string, step: string, data: any) {
+  async completeStep<T extends Record<string, unknown>>(jobId: string, step: string, data: T) {
     const remainOnSameStep = [STEPS.CLIP_VIDEO, STEPS.FACE_DETECTION_AND_CROP, STEPS.CROP_VIDEO, STEPS.CAPTION_CLIP]
       .some(repeatingStep => repeatingStep === step) && data?.response;
 
@@ -23,7 +23,7 @@ class JobQueue {
     await this.progressToNextStep(jobId, data);
   }
 
-  private async triggerNextStep(jobId: string, step: string, previousStepData: any) {
+  private async triggerNextStep<T extends Record<string, unknown>>(jobId: string, step: string, previousStepData: T) {
     console.log(`Triggering next step: ${step} for job ${jobId}`);
 
     switch (step) {
@@ -52,7 +52,7 @@ class JobQueue {
     }
   }
 
-  private async progressToNextStep(jobId: string, previousStepData: any) {
+  private async progressToNextStep<T extends Record<string, unknown>>(jobId: string, previousStepData: T) {
     const job = await jobFind(jobId);
     const pipeline = PIPELINES[job.pipelineType];
     const completedSteps = JSON.parse(job.completedSteps);

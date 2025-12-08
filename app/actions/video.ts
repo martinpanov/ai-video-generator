@@ -74,8 +74,11 @@ export async function handleVideoSubmit(
     }
 
     return { success: true, jobId };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to process video:', error);
-    return { success: false, message: error.message || 'Failed to process video' };
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to create video'
+    };
   }
 }

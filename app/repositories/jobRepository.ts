@@ -47,12 +47,12 @@ export async function jobUpdate({
 }: {
   jobId: string;
   step: string;
-  completedStep: any;
+  completedStep: string | null;
 }) {
   const job = await jobFind(jobId);
   const existingCompletedSteps = JSON.parse(job.completedSteps);
 
-  let completedSteps = completedStep ? [...existingCompletedSteps, completedStep] : existingCompletedSteps;
+  const completedSteps = completedStep ? [...existingCompletedSteps, completedStep] : existingCompletedSteps;
 
   return prisma.job.update({
     where: { id: jobId },

@@ -1,6 +1,6 @@
 import { Anthropic } from '@anthropic-ai/sdk';
 import { STEPS } from '../constants';
-import { RequiredFormDataType } from '../types';
+import { RequiredFormDataType, StepError } from '../types';
 
 type Params = Pick<RequiredFormDataType, "videosAmount" | "videoDuration" | "splitVideo"> & {
   srtData: string;
@@ -112,9 +112,6 @@ export async function aiCommunication({ videosAmount, videoDuration, splitVideo,
     });
   } catch (error) {
     console.error('Failed to communicate with AI:', error);
-
-    const err = new Error('Failed to communicate with AI');
-    (err as any).step = STEPS.CLIP_VIDEO;
-    throw err;
+    throw new StepError('Failed to communicate with AI', STEPS.CLIP_VIDEO);
   }
-};;;
+}

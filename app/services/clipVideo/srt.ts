@@ -1,5 +1,6 @@
 import { apiFetch } from "../../utils/api";
 import { STEPS } from "@/app/constants";
+import { StepError } from "@/app/types";
 
 export async function getSrtTranscript(srtUrl: string) {
   try {
@@ -8,9 +9,6 @@ export async function getSrtTranscript(srtUrl: string) {
     return data;
   } catch (error) {
     console.error('Failed fetching SRT transcript:', error);
-
-    const err = new Error('Failed to fetch SRT transcript');
-    (err as any).step = STEPS.CLIP_VIDEO;
-    throw err;
+    throw new StepError('Failed to fetch SRT transcript', STEPS.CLIP_VIDEO);
   }
 }

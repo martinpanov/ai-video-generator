@@ -4,7 +4,7 @@ import { deleteClip } from "@/app/actions/clips";
 import { STATUS } from "@/app/constants";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Clip } from "@/generated/prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, MoreVertical } from "lucide-react";
@@ -161,7 +161,7 @@ export const columns: ColumnDef<Clip>[] = [
           await deleteClip(clipId);
           toast.dismiss(loadingToast);
           toast.success("Clip deleted successfully");
-        } catch (error) {
+        } catch {
           toast.dismiss(loadingToast);
           toast.error("Failed to delete clip");
         }

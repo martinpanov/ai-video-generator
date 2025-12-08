@@ -1,10 +1,10 @@
-import { STATUS, STEPS } from "@/app/constants";
+import { STATUS } from "@/app/constants";
 import { clipFindByJob, clipUpdate } from "@/app/repositories/clipRepository";
 import { jobQueue } from "../services/jobQueue";
 import { Clip } from "@/generated/prisma/client";
 
-type ProcessClipFn = (clip: Clip, ...args: any[]) => Promise<void>;
-type HandleResponseFn = (processingClip: Clip, previousStepData: any, ...args: any[]) => Promise<void>;
+type ProcessClipFn<T extends unknown[]> = (clip: Clip, ...args: T) => Promise<void>;
+type HandleResponseFn<K extends Record<string, unknown>, T extends unknown[]> = (processingClip: Clip, previousStepData: K, ...args: T) => Promise<void>;
 
 /**
  * Reset clips to PENDING when transitioning from a previous step.
@@ -35,13 +35,13 @@ export async function resetClipsForNewStep(jobId: string, step: string): Promise
   }
 }
 
-interface ClipProcessorConfig {
+interface ClipProcessorConfig<K extends Record<string, unknown>, T extends unknown[]> {
   jobId: string;
   step: string;
-  previousStepData?: any;
-  processClipFn: ProcessClipFn;
-  handleResponseFn?: HandleResponseFn;
-  additionalArgs?: any[];
+  previousStepData?: K;
+  processClipFn: ProcessClipFn<T>;
+  handleResponseFn?: HandleResponseFn<K, T>;
+  additionalArgs?: T;
 }
 
 /**
@@ -59,8 +59,8 @@ interface ClipProcessorConfig {
  * @param config.handleResponseFn - Optional function to handle the response data for a completed clip
  * @param config.additionalArgs - Additional arguments to pass to processClipFn and handleResponseFn
  */
-export async function processClipsSequentially(config: ClipProcessorConfig): Promise<void> {
-  const { jobId, step, previousStepData, processClipFn, handleResponseFn, additionalArgs = [] } = config;
+export async function processClipsSequentially<K extends Record<string, unknown>, T extends unknown[]>(config: ClipProcessorConfig<K, T>): Promise<void> {
+  const { jobId, step, previousStepData, processClipFn, handleResponseFn, additionalArgs } = config;
 
   const clips = await clipFindByJob(jobId);
 
@@ -71,12 +71,12 @@ export async function processClipsSequentially(config: ClipProcessorConfig): Pro
   const processingClip = clips.find((c) => c.status === STATUS.PROCESSING);
 
   if (!processingClip) {
-    await processClipFn(clips[0], ...additionalArgs);
+    await processClipFn(clips[0], ...(additionalArgs || [] as unknown as T));
     return;
   }
 
   if (handleResponseFn && previousStepData?.response) {
-    await handleResponseFn(processingClip, previousStepData, ...additionalArgs);
+    await handleResponseFn(processingClip, previousStepData, ...(additionalArgs || [] as unknown as T));
 
     const updatedClips = await clipFindByJob(jobId);
     const updatedProcessingClip = updatedClips.find((c) => c.id === processingClip.id);
@@ -88,7 +88,7 @@ export async function processClipsSequentially(config: ClipProcessorConfig): Pro
     const nextPendingClip = updatedClips.find((c) => c.status === STATUS.PENDING);
 
     if (nextPendingClip) {
-      await processClipFn(nextPendingClip, ...additionalArgs);
+      await processClipFn(nextPendingClip, ...(additionalArgs || [] as unknown as T));
       return;
     }
 

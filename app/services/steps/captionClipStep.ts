@@ -5,6 +5,12 @@ import { Clip } from "@/generated/prisma/client";
 import { clipUpdate } from "@/app/repositories/clipRepository";
 import { toPublicUrl } from "@/app/utils/toPublicUrl";
 
+type CaptionClipStepData = {
+  response: {
+    file_url: string;
+  };
+};
+
 async function processClip(clip: Clip, jobId: string) {
   await clipUpdate({
     clipId: clip.id,
@@ -15,7 +21,7 @@ async function processClip(clip: Clip, jobId: string) {
   await captionVideo(clip, jobId);
 }
 
-async function handleClipResponse(processingClip: Clip, previousStepData: any) {
+async function handleClipResponse(processingClip: Clip, previousStepData: CaptionClipStepData) {
   const clipUrl = toPublicUrl(previousStepData.response.file_url);
 
   await clipUpdate({
@@ -28,13 +34,13 @@ async function handleClipResponse(processingClip: Clip, previousStepData: any) {
   });
 }
 
-export async function handleCaption(jobId: string, previousStepData: any) {
+export async function handleCaption(jobId: string, previousStepData?: Record<string, unknown>) {
   await resetClipsForNewStep(jobId, STEPS.CAPTION_CLIP);
 
   await processClipsSequentially({
     jobId,
     step: STEPS.CAPTION_CLIP,
-    previousStepData,
+    previousStepData: previousStepData as CaptionClipStepData,
     processClipFn: processClip,
     handleResponseFn: handleClipResponse,
     additionalArgs: [jobId]

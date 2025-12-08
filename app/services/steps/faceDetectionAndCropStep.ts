@@ -7,10 +7,31 @@ import { cutAndScale } from "../calculateClipDimensions/cutAndScale";
 import { toPublicUrl } from "@/app/utils/toPublicUrl";
 import { calculateClipDimensions } from "@/app/utils/calculateClipDimensions";
 
-function getMouthPosition(data: Record<string, any>) {
+type FaceDetectionStepData = {
+  response: {
+    faceAnnotations: Array<{
+      landmarks: Array<{
+        type: string;
+        position: {
+          x: number;
+          y: number;
+          z: number;
+        };
+      }>;
+    }>;
+  };
+};
+
+type CropVideoStepData = {
+  response: Array<{
+    file_url: string;
+  }>;
+};
+
+function getMouthPosition(data: FaceDetectionStepData) {
   const faceData = data.response.faceAnnotations[0];
 
-  const mouthCenter = faceData.landmarks.find((lm: any) => lm.type === "MOUTH_CENTER");
+  const mouthCenter = faceData.landmarks.find((lm) => lm.type === "MOUTH_CENTER")!;
 
   return {
     x: Math.round(mouthCenter.position.x),
@@ -37,11 +58,11 @@ async function requestFaceCordinates(clip: Clip, jobId: string) {
   });
 }
 
-async function handleDimensionsResponse(processingClip: Clip, previousStepData: any, jobId: string) {
-  const isFaceDetection = previousStepData?.response?.faceAnnotations;
+async function handleDimensionsResponse(processingClip: Clip, previousStepData: FaceDetectionStepData | CropVideoStepData, jobId: string) {
+  const isFaceDetection = 'faceAnnotations' in previousStepData.response;
 
   if (isFaceDetection) {
-    const { x, y } = getMouthPosition(previousStepData);
+    const { x, y } = getMouthPosition(previousStepData as FaceDetectionStepData);
     const { clipWidth, clipHeight, cropXWidth, cropYHeight, clipLeftXWidth, clipTopYHeight } = await calculateClipDimensions(jobId, x, y);
 
     await cutAndScale({
@@ -59,7 +80,8 @@ async function handleDimensionsResponse(processingClip: Clip, previousStepData: 
     return;
   }
 
-  const scaledClipUrl = toPublicUrl(previousStepData.response[0].file_url);
+  const cropData = previousStepData as CropVideoStepData;
+  const scaledClipUrl = toPublicUrl(cropData.response[0].file_url);
 
   await clipUpdate({
     clipId: processingClip.id,
@@ -71,13 +93,13 @@ async function handleDimensionsResponse(processingClip: Clip, previousStepData: 
   });
 }
 
-export async function handleFaceDetectionAndCrop(jobId: string, previousStepData?: any) {
+export async function handleFaceDetectionAndCrop(jobId: string, previousStepData?: Record<string, unknown>) {
   await resetClipsForNewStep(jobId, STEPS.FACE_DETECTION_AND_CROP);
 
   await processClipsSequentially({
     jobId,
     step: STEPS.FACE_DETECTION_AND_CROP,
-    previousStepData,
+    previousStepData: previousStepData as FaceDetectionStepData | CropVideoStepData,
     processClipFn: requestFaceCordinates,
     handleResponseFn: handleDimensionsResponse,
     additionalArgs: [jobId]

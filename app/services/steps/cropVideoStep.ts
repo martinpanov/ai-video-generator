@@ -6,6 +6,12 @@ import { Clip } from "@/generated/prisma/client";
 import { cutAndScale } from "../calculateClipDimensions/cutAndScale";
 import { calculateClipDimensions } from "@/app/utils/calculateClipDimensions";
 
+type CropVideoStepData = {
+  response: Array<{
+    file_url: string;
+  }>;
+};
+
 async function requestCropVideo(processingClip: Clip, jobId: string) {
   await clipUpdate({
     clipId: processingClip.id,
@@ -26,7 +32,7 @@ async function requestCropVideo(processingClip: Clip, jobId: string) {
   });
 }
 
-async function handleDimensionsResponse(processingClip: Clip, previousStepData: any) {
+async function handleDimensionsResponse(processingClip: Clip, previousStepData: CropVideoStepData) {
   const scaledClipUrl = toPublicUrl(previousStepData.response[0].file_url);
 
   await clipUpdate({
@@ -39,13 +45,13 @@ async function handleDimensionsResponse(processingClip: Clip, previousStepData: 
   });
 }
 
-export async function handleCropVideo(jobId: string, previousStepData?: any) {
+export async function handleCropVideo(jobId: string, previousStepData?: Record<string, unknown>) {
   await resetClipsForNewStep(jobId, STEPS.CROP_VIDEO);
 
   await processClipsSequentially({
     jobId,
     step: STEPS.CROP_VIDEO,
-    previousStepData,
+    previousStepData: previousStepData as CropVideoStepData,
     processClipFn: requestCropVideo,
     handleResponseFn: handleDimensionsResponse,
     additionalArgs: [jobId]

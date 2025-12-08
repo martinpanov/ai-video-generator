@@ -20,3 +20,13 @@ export type ClipData = {
 };
 
 export type Status = "Processing" | "Completed" | "Pending" | "Failed";
+
+export class StepError extends Error {
+  step: string;
+
+  constructor(message: string, step: string) {
+    super(message);
+    this.name = 'StepError';
+    this.step = step;
+  }
+}
