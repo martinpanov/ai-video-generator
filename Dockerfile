@@ -10,6 +10,7 @@ WORKDIR /app
 # Copy package files and prisma schema (needed for prisma generate during npm ci)
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma
+COPY prisma.config.ts ./
 RUN npm ci
 
 # Rebuild the source code only when needed
@@ -42,6 +43,7 @@ RUN adduser --system --uid 1001 nextjs
 # Copy necessary files
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/package.json ./package.json
 
 # Copy built application
