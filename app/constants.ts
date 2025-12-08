@@ -1,5 +1,5 @@
-export const WEBHOOK_URL = `https://sepulchral-hester-accusable.ngrok-free.dev/api/webhook`;
 export const PROD_URL = 'https://videogenerator.yoannabest.com';
+export const WEBHOOK_URL = process.env.NODE_ENV === "production" ? `${PROD_URL}/api/webhook` : 'https://sepulchral-hester-accusable.ngrok-free.dev/api/webhook';
 
 export const VIDEO_DETAILS = {
   VIDEOS_DURATION: ["1 minute", "2 minutes", "3 minutes"],
