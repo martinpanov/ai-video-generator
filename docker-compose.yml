@@ -23,8 +23,24 @@ services:
       retries: 3
       start_period: 40s
 
+  prisma-studio:
+    image: node:22-alpine
+    container_name: prisma-studio
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "npm install prisma@7.0.0 && HOST=0.0.0.0 npx prisma studio --browser none --port 5555"
+    env_file:
+      - .env
+    networks:
+      - shared-network
+    volumes:
+      - ./prisma:/app/prisma
+      - ./prisma.config.ts:/app/prisma.config.ts
+      - prisma-studio-node-modules:/app/node_modules
+
 volumes:
   ai-video-data:
+  prisma-studio-node-modules:
 
 networks:
   shared-network:
