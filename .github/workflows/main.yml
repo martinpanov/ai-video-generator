@@ -1,0 +1,73 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      
+      - name: Run build
+        run: npm run build
+
+      - name: Run linter
+        run: npm run lint
+        continue-on-error: true
+
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script: |
+            # Ensure shared network exists
+            docker network inspect shared-network >/dev/null 2>&1 || docker network create shared-network
+
+            # Navigate to application directory
+            cd ~/apps/ai-video-generator
+
+            # Pull latest changes
+            git pull origin main
+
+            # Rebuild and restart containers
+            docker-compose build --no-cache
+            docker-compose up -d
+
+            # Clean up unused Docker resources
+            docker image prune -f
+
+            # Wait for health check
+            sleep 10
+
+            # Check if application is healthy
+            docker-compose ps

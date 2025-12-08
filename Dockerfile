@@ -1,17 +1,9 @@
-# Multi-stage build for optimized production image with Python and yt-dlp
+# Multi-stage build for optimized production image
 FROM node:22-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-# Install Python, pip, and yt-dlp along with other dependencies
-RUN apk add --no-cache \
-    libc6-compat \
-    python3 \
-    py3-pip \
-    ffmpeg
-
-# Install yt-dlp globally
-RUN pip3 install --no-cache-dir --break-system-packages yt-dlp
+RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
@@ -23,14 +15,6 @@ RUN npm ci
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
-
-# Install Python and yt-dlp in builder stage
-RUN apk add --no-cache \
-    python3 \
-    py3-pip \
-    ffmpeg
-
-RUN pip3 install --no-cache-dir --break-system-packages yt-dlp
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -47,14 +31,6 @@ RUN npm run build
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
-
-# Install runtime dependencies (Python, yt-dlp, ffmpeg)
-RUN apk add --no-cache \
-    python3 \
-    py3-pip \
-    ffmpeg
-
-RUN pip3 install --no-cache-dir --break-system-packages yt-dlp
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
