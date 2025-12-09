@@ -1,4 +1,4 @@
-import { processClipsSequentially, resetClipsForNewStep } from "@/app/utils/clipProcessor";
+import { processClipsInParallel, resetClipsForNewStep } from "@/app/utils/clipProcessor";
 import { captionVideo } from "../captionClip/captionClip";
 import { STATUS, STEPS } from "@/app/constants";
 import { Clip } from "@/generated/prisma/client";
@@ -37,12 +37,12 @@ async function handleClipResponse(processingClip: Clip, previousStepData: Captio
 export async function handleCaption(jobId: string, previousStepData?: Record<string, unknown>) {
   await resetClipsForNewStep(jobId, STEPS.CAPTION_CLIP);
 
-  await processClipsSequentially({
+  await processClipsInParallel({
     jobId,
     step: STEPS.CAPTION_CLIP,
     previousStepData: previousStepData as CaptionClipStepData,
     processClipFn: processClip,
     handleResponseFn: handleClipResponse,
     additionalArgs: [jobId]
-  });
+  }, 2); // Process 2 clips at a time
 }

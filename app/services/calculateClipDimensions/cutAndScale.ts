@@ -12,20 +12,31 @@ type CutAndScaleParams = {
   clipTopYHeight?: number;
   jobId: string;
   step: string;
+  clipId: string;
+  timeStart?: number;
+  videoDuration?: number;
 };
 
 export async function cutAndScale(params: CutAndScaleParams) {
-  const { clipUrl, clipWidth, clipHeight, cropXWidth, cropYHeight, clipLeftXWidth, clipTopYHeight, jobId, step } = params;
+  const { clipUrl, clipWidth, clipHeight, cropXWidth, cropYHeight, clipLeftXWidth, clipTopYHeight, jobId, step, clipId, timeStart, videoDuration } = params;
 
   const cropFilter = clipLeftXWidth && clipTopYHeight
     ? `crop=${cropXWidth}:${cropYHeight}:${clipLeftXWidth}:${clipTopYHeight}`
     : `crop=${cropXWidth}:${cropYHeight}`;
 
+  const inputOptions = [];
+  if (timeStart) {
+    inputOptions.push({ option: "-ss", argument: timeStart });
+  }
+  if (videoDuration) {
+    inputOptions.push({ option: "-t", argument: videoDuration });
+  }
+
   const payload = {
     inputs: [
       {
         file_url: clipUrl,
-        options: []
+        options: inputOptions
       }
     ],
     filters: [
@@ -51,8 +62,10 @@ export async function cutAndScale(params: CutAndScaleParams) {
         ]
       }
     ],
-    delete_input: true,
-    webhook_url: `${WEBHOOK_URL}?jobId=${jobId}&step=${step}`
+    metadata: {
+      thumbnail: true
+    },
+    webhook_url: `${WEBHOOK_URL}?jobId=${jobId}&step=${step}&clipId=${clipId}`
   };
 
   try {

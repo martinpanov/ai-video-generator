@@ -3,19 +3,18 @@ import { STATUS, STEPS } from '../constants';
 import { PIPELINES } from '../pipeline';
 import { jobFind, jobUpdate } from '../repositories/jobRepository';
 import { handleTranscribeStep } from './steps/transcribeStep';
-import { handleClipVideosStep } from './steps/clipVideosStep';
 import { handleFaceDetectionAndCrop } from './steps/faceDetectionAndCropStep';
 import { handleCaption } from './steps/captionClipStep';
 import { handleCropVideo } from './steps/cropVideoStep';
 import { handleDeleteVideo } from './steps/deleteVideoStep';
 
 class JobQueue {
-  async completeStep<T extends Record<string, unknown>>(jobId: string, step: string, data: T) {
-    const remainOnSameStep = [STEPS.CLIP_VIDEO, STEPS.FACE_DETECTION_AND_CROP, STEPS.CROP_VIDEO, STEPS.CAPTION_CLIP]
+  async completeStep<T extends Record<string, unknown>>(jobId: string, step: string, data: T, clipId?: string) {
+    const remainOnSameStep = [STEPS.FACE_DETECTION_AND_CROP, STEPS.CROP_VIDEO, STEPS.CAPTION_CLIP]
       .some(repeatingStep => repeatingStep === step) && data?.response;
 
     if (remainOnSameStep) {
-      await this.triggerNextStep(jobId, step, data);
+      await this.triggerNextStep(jobId, step, data, clipId);
       return;
     }
 
@@ -24,28 +23,26 @@ class JobQueue {
     await this.progressToNextStep(jobId, data);
   }
 
-  private async triggerNextStep<T extends Record<string, unknown>>(jobId: string, step: string, previousStepData: T) {
-    console.log(`Triggering next step: ${step} for job ${jobId}`);
+  private async triggerNextStep<T extends Record<string, unknown>>(jobId: string, step: string, previousStepData: T, clipId?: string) {
+    console.log(`Triggering next step: ${step} for job ${jobId}${clipId ? ` clip ${clipId}` : ''}`);
+
+    const dataWithClipId = clipId ? { ...previousStepData, clipId } : previousStepData;
 
     switch (step) {
       case STEPS.TRANSCRIBE:
-        await handleTranscribeStep(jobId, previousStepData);
-        break;
-
-      case STEPS.CLIP_VIDEO:
-        await handleClipVideosStep(jobId, previousStepData);
+        await handleTranscribeStep(jobId, dataWithClipId);
         break;
 
       case STEPS.CROP_VIDEO:
-        await handleCropVideo(jobId, previousStepData);
+        await handleCropVideo(jobId, dataWithClipId);
         break;
 
       case STEPS.FACE_DETECTION_AND_CROP:
-        await handleFaceDetectionAndCrop(jobId, previousStepData);
+        await handleFaceDetectionAndCrop(jobId, dataWithClipId);
         break;
 
       case STEPS.CAPTION_CLIP:
-        await handleCaption(jobId, previousStepData);
+        await handleCaption(jobId, dataWithClipId);
         break;
 
       case STEPS.DELETE_VIDEO:

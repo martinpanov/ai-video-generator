@@ -53,7 +53,7 @@ interface ClipProcessorConfig<K extends Record<string, unknown>, T extends unkno
  * 3. When all clips are done: Complete the step
  *
  * @param config.jobId - The job ID
- * @param config.step - The current step (e.g., STEPS.CLIP_VIDEO)
+ * @param config.step - The current step (e.g., STEPS.CROP_VIDEO, STEPS.FACE_DETECTION_AND_CROP)
  * @param config.previousStepData - Data from the webhook/previous step (contains response if available)
  * @param config.processClipFn - Function to process a single clip (async)
  * @param config.handleResponseFn - Optional function to handle the response data for a completed clip
@@ -93,5 +93,62 @@ export async function processClipsSequentially<K extends Record<string, unknown>
     }
 
     await jobQueue.completeStep(jobId, step, {});
+  }
+}
+
+/**
+ * Process clips in parallel with a concurrency limit.
+ * Allows processing multiple clips at once instead of sequentially.
+ *
+ * @param config - Same as processClipsSequentially but with concurrency limit
+ * @param concurrencyLimit - Max number of clips to process at once (default: 2)
+ */
+export async function processClipsInParallel<K extends Record<string, unknown>, T extends unknown[]>(
+  config: ClipProcessorConfig<K, T>,
+  concurrencyLimit: number = 2
+): Promise<void> {
+  const { jobId, step, previousStepData, processClipFn, handleResponseFn, additionalArgs } = config;
+
+  const clips = await clipFindByJob(jobId);
+
+  if (clips.length === 0) {
+    throw new Error("No clips found for job");
+  }
+
+  const processingClips = clips.filter((c) => c.status === STATUS.PROCESSING);
+
+  // If we have a response, handle it for the specific clip identified by clipId
+  if (handleResponseFn && previousStepData?.response && processingClips.length > 0) {
+    // Find the specific clip by clipId if provided, otherwise fall back to first processing clip
+    const clipId = (previousStepData as Record<string, unknown>).clipId as string | undefined;
+    const clipToUpdate = clipId
+      ? processingClips.find(c => c.id === clipId) || processingClips[0]
+      : processingClips[0];
+
+    await handleResponseFn(clipToUpdate, previousStepData, ...(additionalArgs || [] as unknown as T));
+  }
+
+  // Get updated clips state
+  const updatedClips = await clipFindByJob(jobId);
+  const currentlyProcessing = updatedClips.filter((c) => c.status === STATUS.PROCESSING);
+  const pendingClips = updatedClips.filter((c) => c.status === STATUS.PENDING);
+
+  // If no more pending clips and no processing clips, complete the step
+  if (pendingClips.length === 0 && currentlyProcessing.length === 0) {
+    await jobQueue.completeStep(jobId, step, {});
+    return;
+  }
+
+  // Process more clips if we're under the concurrency limit
+  const slotsAvailable = concurrencyLimit - currentlyProcessing.length;
+  if (slotsAvailable > 0 && pendingClips.length > 0) {
+    const clipsToProcess = pendingClips.slice(0, slotsAvailable);
+
+    // Start processing clips - the processClipFn marks them as PROCESSING immediately
+    // This happens sequentially to prevent race conditions where two webhooks
+    // try to start the same pending clip
+    for (const clip of clipsToProcess) {
+      processClipFn(clip, ...(additionalArgs || [] as unknown as T));
+    }
   }
 }

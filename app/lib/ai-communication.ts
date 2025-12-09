@@ -1,14 +1,14 @@
 import { Anthropic } from '@anthropic-ai/sdk';
-import { STEPS } from '../constants';
 import { RequiredFormDataType, StepError } from '../types';
 
 type Params = Pick<RequiredFormDataType, "videosAmount" | "videoDuration" | "splitVideo"> & {
   srtData: string;
+  step: string;
 };
 
 const anthropic = new Anthropic();
 
-export async function aiCommunication({ videosAmount, videoDuration, splitVideo, srtData }: Params) {
+export async function aiCommunication({ videosAmount, videoDuration, splitVideo, srtData, step }: Params) {
   try {
     return await anthropic.messages.create({
       model: "claude-sonnet-4-5-20250929",
@@ -113,6 +113,6 @@ export async function aiCommunication({ videosAmount, videoDuration, splitVideo,
     });
   } catch (error) {
     console.error('Failed to communicate with AI:', error);
-    throw new StepError('Failed to communicate with AI', STEPS.CLIP_VIDEO);
+    throw new StepError('Failed to communicate with AI', step);
   }
 }

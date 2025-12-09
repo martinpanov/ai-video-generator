@@ -1,36 +1,32 @@
 import { STEPS } from "./constants";
 
-const COMMON_STEPS = [
-  { step: STEPS.TRANSCRIBE, subSteps: ["metaData"], label: "Transcribing Audio" },
-  { step: STEPS.CLIP_VIDEO, subSteps: ["srtTranscript", "wordTimestamps"], label: "Clipping Videos" },
-];
-
 const VIDEO_SOCIAL_MEDIA_STEP = { step: STEPS.DOWNLOAD, subSteps: [], label: "Downloading Video" };
-const CROP_VIDEO_STEP = { step: STEPS.CROP_VIDEO, subSteps: [], label: "Calculating Clip Dimensions" };
-const FACE_DETECTION_AND_CROP_STEP = { step: STEPS.FACE_DETECTION_AND_CROP, subSteps: [], label: "Calculating Clip Dimensions" };
+const TRANSCRIBE_STEP = { step: STEPS.TRANSCRIBE, subSteps: ["metaData"], label: "Transcribing Audio" };
+const CROP_VIDEO_STEP = { step: STEPS.CROP_VIDEO, subSteps: ["srtTranscript", "wordTimestamps"], label: "Clipping & Cropping Videos" };
+const FACE_DETECTION_AND_CROP_STEP = { step: STEPS.FACE_DETECTION_AND_CROP, subSteps: ["srtTranscript", "wordTimestamps"], label: "Face Detection, Clip & Crop" };
 const CAPTIONS_STEP = { step: STEPS.CAPTION_CLIP, subSteps: [], label: "Captioning Clip" };
 const DELETE_VIDEO_STEP = { step: STEPS.DELETE_VIDEO, subSteps: [], label: "Deleting Video" };
 
 const GROUPS = {
-  ZOOM_FACE_GROUP: [
-    FACE_DETECTION_AND_CROP_STEP,
-    DELETE_VIDEO_STEP
-  ],
   CROP_GROUP: [
+    TRANSCRIBE_STEP,
     CROP_VIDEO_STEP,
     DELETE_VIDEO_STEP
   ],
-  CAPTION_GROUP: [
+  ZOOM_FACE_GROUP: [
+    TRANSCRIBE_STEP,
+    FACE_DETECTION_AND_CROP_STEP,
+    DELETE_VIDEO_STEP
+  ],
+  CAPTION_CROP_GROUP: [
+    TRANSCRIBE_STEP,
+    CROP_VIDEO_STEP,
     CAPTIONS_STEP,
     DELETE_VIDEO_STEP
   ],
   CAPTION_ZOOM_FACE_GROUP: [
+    TRANSCRIBE_STEP,
     FACE_DETECTION_AND_CROP_STEP,
-    CAPTIONS_STEP,
-    DELETE_VIDEO_STEP
-  ],
-  CAPTION_CROP_GROUP: [
-    CROP_VIDEO_STEP,
     CAPTIONS_STEP,
     DELETE_VIDEO_STEP
   ]
@@ -39,55 +35,38 @@ const GROUPS = {
 export const PIPELINES = {
   VIDEO_SOCIAL_MEDIA: [
     VIDEO_SOCIAL_MEDIA_STEP,
-    ...COMMON_STEPS,
+    TRANSCRIBE_STEP,
+    CROP_VIDEO_STEP,
     DELETE_VIDEO_STEP
   ],
   VIDEO_SOCIAL_MEDIA_ZOOM_FACE: [
     VIDEO_SOCIAL_MEDIA_STEP,
-    ...COMMON_STEPS,
     ...GROUPS.ZOOM_FACE_GROUP
   ],
   VIDEO_SOCIAL_MEDIA_CROP: [
     VIDEO_SOCIAL_MEDIA_STEP,
-    ...COMMON_STEPS,
     ...GROUPS.CROP_GROUP
   ],
   VIDEO_SOCIAL_MEDIA_CAPTION: [
     VIDEO_SOCIAL_MEDIA_STEP,
-    ...COMMON_STEPS,
-    ...GROUPS.CAPTION_GROUP
+    ...GROUPS.CAPTION_CROP_GROUP
   ],
   VIDEO_SOCIAL_MEDIA_CAPTION_ZOOM_FACE: [
     VIDEO_SOCIAL_MEDIA_STEP,
-    ...COMMON_STEPS,
     ...GROUPS.CAPTION_ZOOM_FACE_GROUP
   ],
   VIDEO_SOCIAL_MEDIA_CAPTION_CROP: [
     VIDEO_SOCIAL_MEDIA_STEP,
-    ...COMMON_STEPS,
     ...GROUPS.CAPTION_CROP_GROUP
   ],
 
-
-  DIRECT: COMMON_STEPS,
-  DIRECT_ZOOM_FACE: [
-    ...COMMON_STEPS,
-    ...GROUPS.ZOOM_FACE_GROUP
+  DIRECT: [
+    TRANSCRIBE_STEP,
+    CROP_VIDEO_STEP
   ],
-  DIRECT_CROP: [
-    ...COMMON_STEPS,
-    ...GROUPS.CROP_GROUP
-  ],
-  DIRECT_CAPTION: [
-    ...COMMON_STEPS,
-    ...GROUPS.CAPTION_GROUP
-  ],
-  DIRECT_CAPTION_ZOOM_FACE: [
-    ...COMMON_STEPS,
-    ...GROUPS.CAPTION_ZOOM_FACE_GROUP
-  ],
-  DIRECT_CAPTION_CROP: [
-    ...COMMON_STEPS,
-    ...GROUPS.CAPTION_CROP_GROUP
-  ],
+  DIRECT_ZOOM_FACE: GROUPS.ZOOM_FACE_GROUP,
+  DIRECT_CROP: GROUPS.CROP_GROUP,
+  DIRECT_CAPTION: GROUPS.CAPTION_CROP_GROUP,
+  DIRECT_CAPTION_ZOOM_FACE: GROUPS.CAPTION_ZOOM_FACE_GROUP,
+  DIRECT_CAPTION_CROP: GROUPS.CAPTION_CROP_GROUP,
 };

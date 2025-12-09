@@ -23,7 +23,7 @@ export async function captionVideo(clip: Clip, jobId: string) {
       position: "bottom_center"
     },
     delete_input: true,
-    webhook_url: `${WEBHOOK_URL}?jobId=${jobId}&step=${STEPS.CAPTION_CLIP}`
+    webhook_url: `${WEBHOOK_URL}?jobId=${jobId}&step=${STEPS.CAPTION_CLIP}&clipId=${clip.id}`
   };
 
   try {

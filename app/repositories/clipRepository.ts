@@ -31,7 +31,7 @@ export async function clipCreate({
     });
   } catch (error) {
     console.error('Failed to create clip:', error);
-    throw new StepError('Failed to create clip', STEPS.CLIP_VIDEO);
+    throw new StepError('Failed to create clip', STEPS.CROP_VIDEO);
   }
 }
 

@@ -9,7 +9,6 @@ export const VIDEO_DETAILS = {
 export const STEPS = {
   DOWNLOAD: "download",
   TRANSCRIBE: "transcribe",
-  CLIP_VIDEO: "clip-video",
   FINALIZE_CLIPS: "finalize-clips",
   CROP_VIDEO: "crop-video",
   FACE_DETECTION_AND_CROP: "face-detection-and-crop",
