@@ -1,4 +1,5 @@
-import { PIPELINES, STATUS, STEPS } from "@/app/constants";
+import { STATUS, STEPS } from "@/app/constants";
+import { PIPELINES } from "@/app/pipeline";
 import { ItemSkeleton } from "./ItemSkeleton";
 import { JobStatusItem } from "./Item";
 import { JobStatus } from "../types";

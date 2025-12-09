@@ -1,5 +1,6 @@
 import { prisma } from '../lib/db';
-import { PIPELINES, STATUS, STEPS } from '../constants';
+import { STATUS, STEPS } from '../constants';
+import { PIPELINES } from '../pipeline';
 import { jobFind, jobUpdate } from '../repositories/jobRepository';
 import { handleTranscribeStep } from './steps/transcribeStep';
 import { handleClipVideosStep } from './steps/clipVideosStep';

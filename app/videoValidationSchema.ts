@@ -13,7 +13,7 @@ export const videoValidationSchema = {
       message: "Amount should be at least 1"
     },
     max: {
-      value: 5,
+      value: 10,
       message: "Amount should be at most 5"
     }
   },
