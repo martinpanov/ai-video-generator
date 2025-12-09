@@ -85,7 +85,8 @@ export async function aiCommunication({ videosAmount, videoDuration, splitVideo,
           ${splitVideo &&
             `
             - Break the long video into a series of clips (parts). You must keep the entire video intact—do not remove any content. Simply divide it into multiple parts. 
-            - Each part should last at least one minute and should stop just before an important revelation or 'aha' moment. 
+            - Each part should last at least one minute and should stop just before an important revelation or 'aha' moment.
+            - Keep segment lengths balanced across the entire video. Avoid having early segments that are much longer than later ones, or vice versa. For example, don't create several short segments followed by one very long segment, and don't create very long early segments followed by very short ending segments.
             - This structure should entice viewers to continue watching the next parts.
             - The last part's duration doesn't matter that much but ensure it is longer than 30 seconds, we don't want it to be too short.`
             }
