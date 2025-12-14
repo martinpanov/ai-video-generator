@@ -1,6 +1,7 @@
 import { WEBHOOK_URL } from "@/app/constants";
 import { apiFetch } from "@/app/utils/api";
 import { StepError } from "@/app/types";
+import { toPublicUrl } from "@/app/utils/toPublicUrl";
 
 type CutAndScaleParams = {
   clipUrl: string;
@@ -24,7 +25,7 @@ export async function cutAndScale(params: CutAndScaleParams) {
   const payload = {
     inputs: [
       {
-        file_url: clipUrl,
+        file_url: toPublicUrl(clipUrl, true),
         options: []
       }
     ],

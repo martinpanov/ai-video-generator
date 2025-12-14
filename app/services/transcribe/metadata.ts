@@ -4,6 +4,7 @@ import { videoCreate } from "../../repositories/videoRepository";
 import { FormDataType, StepError } from "@/app/types";
 import { STEPS } from "@/app/constants";
 import { PipelineType } from "@/generated/prisma/enums";
+import { toPublicUrl } from "@/app/utils/toPublicUrl";
 
 type Params = {
   formData: FormDataType;
@@ -15,10 +16,13 @@ type Params = {
 
 export async function generateMetadata({ formData, existingJobId, userId, pipelineType, videoUrl }: Params) {
   try {
+    // Use forBackend=true to keep minio:9000 for Docker containers
+    const backendUrl = toPublicUrl(videoUrl, true);
+
     const data = await apiFetch({
       endpoint: "/v1/media/metadata",
       method: "POST",
-      body: { media_url: videoUrl }
+      body: { media_url: backendUrl }
     });
 
     let job;

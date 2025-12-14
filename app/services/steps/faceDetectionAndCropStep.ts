@@ -51,7 +51,7 @@ async function requestFaceCordinates(clip: Clip, jobId: string) {
     endpoint: "/v1/video/detect-face",
     method: "POST",
     body: {
-      video_url: clip.clipUrl,
+      video_url: toPublicUrl(clip.clipUrl, true),
       sample_frames: 100,
       webhook_url: `${WEBHOOK_URL}?jobId=${jobId}&step=${STEPS.FACE_DETECTION_AND_CROP}`
     }

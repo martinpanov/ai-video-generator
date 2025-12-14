@@ -3,7 +3,31 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: 'standalone',
   images: {
-    remotePatterns: [new URL('https://videogenerator.yoannabest.com/minio/nca-toolkit-prod/**')],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'videogenerator.yoannabest.com',
+        pathname: '/minio/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9000',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+        port: '9000',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'minio',
+        port: '9000',
+        pathname: '/**',
+      },
+    ],
   },
 };
 

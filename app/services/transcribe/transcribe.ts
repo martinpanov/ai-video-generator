@@ -1,10 +1,11 @@
 import { STEPS, WEBHOOK_URL } from "@/app/constants";
 import { apiFetch } from "../../utils/api";
 import { StepError } from "@/app/types";
+import { toPublicUrl } from "@/app/utils/toPublicUrl";
 
 export async function generateTranscript(mediaUrl: string, jobId: string) {
   const payload = {
-    media_url: mediaUrl,
+    media_url: toPublicUrl(mediaUrl, true),
     task: "transcribe",
     include_text: true,
     include_srt: true,

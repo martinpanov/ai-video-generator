@@ -1,5 +1,5 @@
 import { RequestInit } from "next/dist/server/web/spec-extension/request";
-import { PROD_URL } from "../constants";
+import { API_URL } from "../constants";
 
 type Params<T extends Record<string, unknown>> = {
   endpoint: string;
@@ -23,7 +23,7 @@ export async function apiFetch<T extends Record<string, unknown>>({
     ...(body && { body: JSON.stringify(body) })
   };
 
-  const response = await fetch(endpoint?.includes("http") ? endpoint : `${PROD_URL}${endpoint}`, requestData);
+  const response = await fetch(endpoint?.includes("http") ? endpoint : `${API_URL}${endpoint}`, requestData);
 
   if (!response.ok) {
     console.error(`API request failed: ${response.status} ${response.statusText}`);

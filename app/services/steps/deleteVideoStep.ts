@@ -3,6 +3,7 @@ import { STEPS } from "@/app/constants";
 import { apiFetch } from "@/app/utils/api";
 import { prisma } from "@/app/lib/db";
 import { StepError } from "@/app/types";
+import { toPublicUrl } from "@/app/utils/toPublicUrl";
 
 function extractTranscriptionId(url: string | null): string | null {
   if (!url) return null;
@@ -20,7 +21,7 @@ export async function handleDeleteVideo(jobId: string) {
       extractTranscriptionId(video.textUrl);
 
     const body = {
-      video_url: video.videoUrl,
+      video_url: toPublicUrl(video.videoUrl, true),
       ...(transcriptionId && { transcription_id: transcriptionId })
     };
 

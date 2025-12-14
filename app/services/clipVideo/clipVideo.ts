@@ -1,6 +1,7 @@
 import { STEPS, WEBHOOK_URL } from "@/app/constants";
 import { apiFetch } from "../../utils/api";
 import { StepError } from "@/app/types";
+import { toPublicUrl } from "@/app/utils/toPublicUrl";
 
 type Params = {
   timeStart: number;
@@ -13,7 +14,7 @@ export async function clipVideo({ timeStart, videoDuration, videoUrl, jobId }: P
   const payload = {
     inputs: [
       {
-        file_url: videoUrl,
+        file_url: toPublicUrl(videoUrl, true),
         options: [
           {
             option: "-ss",
