@@ -1,5 +1,4 @@
 import { generateTranscript } from '../transcribe/transcribe';
-import { toPublicUrl } from '@/app/utils/toPublicUrl';
 import { jobFind } from '@/app/repositories/jobRepository';
 import { generateMetadata } from '../transcribe/metadata';
 
@@ -15,7 +14,8 @@ export async function handleTranscribeStep(jobId: string, previousStepData: Reco
   const data = previousStepData as TranscribeStepData;
   const job = await jobFind(jobId);
   const { formData, userId } = job;
-  const mediaUrl = toPublicUrl(data.response.media.media_url);
+  // Keep the original minio:9000 URL for database storage
+  const mediaUrl = data.response.media.media_url;
 
   await generateMetadata({ formData: JSON.parse(formData), existingJobId: jobId, userId, videoUrl: mediaUrl });
   await generateTranscript(mediaUrl, jobId);

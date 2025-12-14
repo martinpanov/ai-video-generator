@@ -2,10 +2,11 @@ import { STEPS, WEBHOOK_URL } from "@/app/constants";
 import { apiFetch } from "@/app/utils/api";
 import { Clip } from "@/generated/prisma/client";
 import { StepError } from "@/app/types";
+import { toPublicUrl } from "@/app/utils/toPublicUrl";
 
 export async function captionVideo(clip: Clip, jobId: string) {
   const payload = {
-    video_url: clip.clipUrl,
+    video_url: toPublicUrl(clip.clipUrl, true),
     settings: {
       line_color: "#FFFFFF",
       word_color: "#FFFF00",

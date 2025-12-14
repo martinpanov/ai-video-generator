@@ -1,5 +1,8 @@
+export const API_ENV = process.env.API_ENV || (process.env.NODE_ENV === 'production' ? 'production' : 'local');
+const API_DEV_URL = 'http://localhost:8080';
 export const PROD_URL = 'https://videogenerator.yoannabest.com';
-export const WEBHOOK_URL = process.env.NODE_ENV === "production" ? `${PROD_URL}/api/webhook` : 'https://sepulchral-hester-accusable.ngrok-free.dev/api/webhook';
+export const API_URL = API_ENV === 'production' ? PROD_URL : API_DEV_URL;
+export const WEBHOOK_URL = process.env.NODE_ENV === 'production' ? `${PROD_URL}/api/webhook` : 'https://sepulchral-hester-accusable.ngrok-free.dev/api/webhook';
 
 export const VIDEO_DETAILS = {
   VIDEOS_DURATION: ["1 minute", "2 minutes", "3 minutes"],
