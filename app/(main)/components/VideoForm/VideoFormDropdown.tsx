@@ -17,13 +17,13 @@ type FormDropdownAndCheckboxProps = {
   checkboxField: string;
   checkboxLabel: string;
   state: VideoSubmitState;
-  dropdownDetails: {
+  dropdowns: {
     field: string;
     label: string;
     defaultValue: string;
     placeholder: string;
     data: string[];
-  };
+  }[];
   shouldShowDropdown?: boolean;
 };
 
@@ -46,7 +46,7 @@ const FormDropdown = ({ label, field, defaultValue, placeholder, data }: FormDro
   );
 };
 
-export const FormDropdownAndCheckbox = ({ checkboxField, checkboxLabel, state, dropdownDetails, shouldShowDropdown }: FormDropdownAndCheckboxProps) => {
+export const FormDropdownAndCheckbox = ({ checkboxField, checkboxLabel, state, dropdowns, shouldShowDropdown }: FormDropdownAndCheckboxProps) => {
   const [isChecked, setIsChecked] = useState(false);
 
   return (
@@ -57,14 +57,15 @@ export const FormDropdownAndCheckbox = ({ checkboxField, checkboxLabel, state, d
           <Label htmlFor={checkboxField}>{checkboxLabel}</Label>
         </div>
       </Field>
-      {(shouldShowDropdown || !isChecked) && (
-        <Field>
-          <FormDropdown {...dropdownDetails} />
-          {state?.[dropdownDetails.field] && (
-            <p className="text-sm text-red-500 mt-1">{state[dropdownDetails.field]}</p>
+      {(shouldShowDropdown || !isChecked) && dropdowns.map(dropdown => (
+        <Field key={dropdown.label}>
+          <FormDropdown {...dropdown} />
+          {state?.[dropdown.field] && (
+            <p className="text-sm text-red-500 mt-1">{state[dropdown.field]}</p>
           )}
         </Field>
-      )}
+      ))
+      }
     </>
   );
 };

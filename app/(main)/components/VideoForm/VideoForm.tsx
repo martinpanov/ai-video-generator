@@ -10,24 +10,39 @@ import { FormDropdownAndCheckbox } from "./VideoFormDropdown";
 import { dispatchEvent } from "../../../utils/events";
 import { handleVideoSubmit, type VideoSubmitState } from "../../../actions/video";
 import { useActionState, useEffect } from "react";
-import { VIDEO_DETAILS } from "../../../constants";
+import { DIALOG_IDS, VIDEO_DETAILS } from "../../../constants";
 
 const DROPDOWN_AND_CHECKBOX_DETAILS = [
   {
-    field: "clip-size",
-    label: "Clip Size",
-    defaultValue: "1080x1920",
-    placeholder: "Select Clip Size",
-    data: VIDEO_DETAILS.VIDEOS_SIZES,
+    dropdowns: [
+      {
+        field: "clip-size",
+        label: "Clip Size",
+        defaultValue: "1080x1920",
+        placeholder: "Select Clip Size",
+        data: VIDEO_DETAILS.VIDEOS_SIZES,
+      }
+    ],
     checkboxLabel: "Zoom in on the person talking",
     checkboxField: "zoom"
   },
   {
-    field: "video-duration",
-    label: "Video Duration",
-    defaultValue: "1 minute",
-    placeholder: "Select Video Duration",
-    data: VIDEO_DETAILS.VIDEOS_DURATION,
+    dropdowns: [
+      {
+        field: "video-duration",
+        label: "Video Duration",
+        defaultValue: "1 minute",
+        placeholder: "Select Video Duration",
+        data: VIDEO_DETAILS.VIDEOS_DURATION,
+      },
+      {
+        field: "duration-type",
+        label: "Duration Type",
+        defaultValue: "Min",
+        placeholder: "Select Duration Type",
+        data: VIDEO_DETAILS.VIDEOS_DURATION_TYPE,
+      }
+    ],
     checkboxLabel: "Split Video Into Parts",
     checkboxField: "split-video"
   }
@@ -38,7 +53,7 @@ export const VideoForm = () => {
 
   useEffect(() => {
     if (state?.success && state?.jobId) {
-      dispatchEvent("showDialog");
+      dispatchEvent(DIALOG_IDS.STATUS_DIALOG_OPEN);
       dispatchEvent("setJobId", { jobId: state.jobId });
     }
   }, [state]);
@@ -67,14 +82,14 @@ export const VideoForm = () => {
                 <p className="text-sm text-red-500 mt-1">{state.videosAmount}</p>
               )}
             </Field>
-            {DROPDOWN_AND_CHECKBOX_DETAILS.map(dropdownDetails => (
+            {DROPDOWN_AND_CHECKBOX_DETAILS.map(details => (
               <FormDropdownAndCheckbox
-                key={dropdownDetails.label}
-                checkboxField={dropdownDetails.checkboxField}
-                checkboxLabel={dropdownDetails.checkboxLabel}
+                key={details.checkboxLabel}
+                checkboxField={details.checkboxField}
+                checkboxLabel={details.checkboxLabel}
                 state={state}
-                dropdownDetails={dropdownDetails}
-                shouldShowDropdown={dropdownDetails.field === "clip-size"}
+                dropdowns={details.dropdowns}
+                shouldShowDropdown={details.dropdowns.some(dropdown => dropdown.field === "clip-size")}
               />
             ))}
             <Field>

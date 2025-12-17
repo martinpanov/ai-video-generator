@@ -3,6 +3,7 @@ export const WEBHOOK_URL = process.env.NODE_ENV === "production" ? `${PROD_URL}/
 
 export const VIDEO_DETAILS = {
   VIDEOS_DURATION: ["1 minute", "2 minutes", "3 minutes"],
+  VIDEOS_DURATION_TYPE: ["Min", "Max"],
   VIDEOS_SIZES: ["1080x1920", "1920x1080", "1080x1080"]
 };
 
@@ -23,3 +24,11 @@ export const STATUS = {
   COMPLETED: "Completed",
   FAILED: "Failed"
 } as const;
+
+
+export const DIALOG_IDS = {
+  STATUS_DIALOG_OPEN: "STATUS_DIALOG_OPEN",
+  STATUS_DIALOG_CLOSE: "STATUS_DIALOG_CLOSE",
+  TODO_DIALOG_OPEN: "TASK_DIALOG_OPEN",
+  TODO_DIALOG_CLOSE: "TASK_DIALOG_CLOSE",
+};

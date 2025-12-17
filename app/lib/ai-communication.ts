@@ -1,14 +1,14 @@
 import { Anthropic } from '@anthropic-ai/sdk';
 import { STEPS } from '../constants';
-import { RequiredFormDataType, StepError } from '../types';
+import { FormDataType, StepError } from '../types';
 
-type Params = Pick<RequiredFormDataType, "videosAmount" | "videoDuration" | "splitVideo"> & {
+type Params = Pick<FormDataType, "videosAmount" | "videoDuration" | "splitVideo" | "durationType"> & {
   srtData: string;
 };
 
 const anthropic = new Anthropic();
 
-export async function aiCommunication({ videosAmount, videoDuration, splitVideo, srtData }: Params) {
+export async function aiCommunication({ videosAmount, videoDuration, splitVideo, srtData, durationType }: Params) {
   try {
     return await anthropic.messages.create({
       model: "claude-sonnet-4-5-20250929",
@@ -35,7 +35,7 @@ export async function aiCommunication({ videosAmount, videoDuration, splitVideo,
       messages: [
         {
           "role": "user",
-          "content": `Analyze this SRT transcript and extract EXACTLY ${videosAmount} clips (no more, no less). ${!splitVideo && `Each clip must be no less than ${videoDuration} but at most 5 minutes.`}
+          "content": `Analyze this SRT transcript and extract EXACTLY ${videosAmount} clips (no more, no less). ${!splitVideo && `Each clip must be ${durationType === "Min" ? `no less than ${videoDuration} but at most 5 minutes.` : `at most ${videoDuration}`}`}
           
           **TRANSCRIPT:**
           ${srtData}
@@ -68,7 +68,7 @@ export async function aiCommunication({ videosAmount, videoDuration, splitVideo,
             - Controversial or counterintuitive takes
             
             **LENGTH GUIDANCE:**
-            - Target: No less than ${videoDuration} but at most 5 minutes.
+            - Target: ${durationType === "Min" ? `No less than ${videoDuration} but at most 5 minutes` : `At most ${videoDuration}`}
             - Prioritize completeness over brevity
             - If a valuable sequence runs longer, include the full sequence
            `

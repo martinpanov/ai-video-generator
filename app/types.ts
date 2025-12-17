@@ -1,14 +1,13 @@
 export type FormDataType = {
   videoUrl: string;
-  videosAmount?: number;
-  videoDuration?: string;
-  clipSize?: string;
-  zoomVideoEnabled?: boolean;
-  transcribeVideoEnabled?: boolean;
-  splitVideo?: boolean;
+  videosAmount: number;
+  videoDuration: string;
+  clipSize: string;
+  zoomVideoEnabled: boolean;
+  transcribeVideoEnabled: boolean;
+  splitVideo: boolean;
+  durationType: "Min" | "Max";
 };
-
-export type RequiredFormDataType = Required<FormDataType>;
 
 export type ClipData = {
   clip: string;

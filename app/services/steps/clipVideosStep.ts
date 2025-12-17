@@ -40,8 +40,8 @@ async function identifyClips(jobId: string, previousStepData: TranscribeResponse
 
   const srtData = await getSrtTranscript(toPublicUrl(previousStepData.response.srt_url));
   // await getWordTimestamps(toPublicUrl(previousStepData.response.segments_url), jobId);
-  const { videosAmount, videoDuration, splitVideo, videoUrl } = await getFormData(jobId);
-  const data = await aiCommunication({ videosAmount, videoDuration, splitVideo, srtData });
+  const { videosAmount, videoDuration, splitVideo, videoUrl, durationType } = await getFormData(jobId);
+  const data = await aiCommunication({ videosAmount, videoDuration, splitVideo, srtData, durationType });
   const clipsData: ClipData[] = parseAiResponse(data.content);
 
   return Promise.all(

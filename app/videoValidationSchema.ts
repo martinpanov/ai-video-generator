@@ -31,5 +31,11 @@ export const videoValidationSchema = {
       value: VIDEO_DETAILS.VIDEOS_SIZES,
       message: "Invalid Clip Size"
     }
+  },
+  durationType: {
+    isEqualTo: {
+      value: VIDEO_DETAILS.VIDEOS_DURATION_TYPE,
+      message: "Invalid Duration Type"
+    }
   }
 };

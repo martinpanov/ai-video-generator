@@ -1,7 +1,7 @@
 import { apiFetch } from "../../utils/api";
 import { jobCreate, jobUpdate } from "../../repositories/jobRepository";
 import { videoCreate } from "../../repositories/videoRepository";
-import { FormDataType, RequiredFormDataType, StepError } from "@/app/types";
+import { FormDataType, StepError } from "@/app/types";
 import { STEPS } from "@/app/constants";
 import { PipelineType } from "@/generated/prisma/enums";
 
@@ -30,14 +30,14 @@ export async function generateMetadata({ formData, existingJobId, userId, pipeli
         step: STEPS.TRANSCRIBE,
         completedStep: "metadata",
         pipelineType: pipelineType as PipelineType,
-        formData: formData as RequiredFormDataType,
-        userId: userId as string
+        formData: formData,
+        userId
       });
     }
 
     await videoCreate({
       jobId: job.id,
-      userId: userId as string,
+      userId,
       data: {
         videoUrl,
         videoWidth: data.response.width,

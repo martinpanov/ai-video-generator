@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, Video } from "lucide-react";
+import { Bot, ClipboardList, Video } from "lucide-react";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -15,6 +15,11 @@ const items = [
     title: "Clips",
     url: "/clips",
     icon: Video,
+  },
+  {
+    title: "Todos",
+    url: "/todos",
+    icon: ClipboardList
   }
 ];
 

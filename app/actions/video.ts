@@ -8,6 +8,7 @@ import { generateTranscript } from "../services/transcribe/transcribe";
 import { verifySession } from "../lib/session";
 import { jobByUser } from "../repositories/jobRepository";
 import { getPipelineType } from "../utils/getPipelineType";
+import { FormDataType } from "../types";
 
 const VIDEO_SOCIAL_MEDIA_URLS = ["youtube.com", "youtu.be", "youtube", "kick"];
 
@@ -27,14 +28,15 @@ export async function handleVideoSubmit(
   formData: FormData
 ) {
   const data = {
-    videoUrl: formData.get('video-url') as string,
+    videoUrl: formData.get('video-url'),
     videosAmount: Number(formData.get('videos-amount')),
-    videoDuration: formData.get('video-duration') as string,
-    clipSize: formData.get('clip-size') as string,
+    videoDuration: formData.get('video-duration'),
+    clipSize: formData.get('clip-size'),
     zoomVideoEnabled: Boolean(formData.get("zoom")),
     transcribeVideoEnabled: Boolean(formData.get("transcribe")),
-    splitVideo: Boolean(formData.get("split-video"))
-  };
+    splitVideo: Boolean(formData.get("split-video")),
+    durationType: formData.get("duration-type")
+  } as FormDataType;
 
   const { isValid, errors } = validation(data, videoValidationSchema);
 
