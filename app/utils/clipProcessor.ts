@@ -53,7 +53,7 @@ interface ClipProcessorConfig<K extends Record<string, unknown>, T extends unkno
  * 3. When all clips are done: Complete the step
  *
  * @param config.jobId - The job ID
- * @param config.step - The current step (e.g., STEPS.CLIP_VIDEO)
+ * @param config.step - The current step (e.g., STEPS.CROP_VIDEO, STEPS.FACE_DETECTION_AND_CROP)
  * @param config.previousStepData - Data from the webhook/previous step (contains response if available)
  * @param config.processClipFn - Function to process a single clip (async)
  * @param config.handleResponseFn - Optional function to handle the response data for a completed clip
@@ -68,18 +68,20 @@ export async function processClipsSequentially<K extends Record<string, unknown>
     throw new Error("No clips found for job");
   }
 
-  const processingClip = clips.find((c) => c.status === STATUS.PROCESSING);
+  const processingClips = clips.filter((c) => c.status === STATUS.PROCESSING);
 
-  if (!processingClip) {
-    await processClipFn(clips[0], ...(additionalArgs || [] as unknown as T));
-    return;
-  }
+  // If we have a response, handle it for the specific clip identified by clipId
+  if (handleResponseFn && previousStepData?.response && processingClips.length > 0) {
+    // Find the specific clip by clipId if provided, otherwise fall back to first processing clip
+    const clipId = (previousStepData as Record<string, unknown>).clipId as string | undefined;
+    const clipToUpdate = clipId
+      ? processingClips.find(c => c.id === clipId) || processingClips[0]
+      : processingClips[0];
 
-  if (handleResponseFn && previousStepData?.response) {
-    await handleResponseFn(processingClip, previousStepData, ...(additionalArgs || [] as unknown as T));
+    await handleResponseFn(clipToUpdate, previousStepData, ...(additionalArgs || [] as unknown as T));
 
     const updatedClips = await clipFindByJob(jobId);
-    const updatedProcessingClip = updatedClips.find((c) => c.id === processingClip.id);
+    const updatedProcessingClip = updatedClips.find((c) => c.id === clipToUpdate.id);
 
     if (updatedProcessingClip?.status === STATUS.PROCESSING) {
       return;
@@ -93,5 +95,14 @@ export async function processClipsSequentially<K extends Record<string, unknown>
     }
 
     await jobQueue.completeStep(jobId, step, {});
+    return;
+  }
+
+  // No response yet - start processing the first pending clip if no clips are processing
+  if (processingClips.length === 0) {
+    const firstPendingClip = clips.find((c) => c.status === STATUS.PENDING);
+    if (firstPendingClip) {
+      await processClipFn(firstPendingClip, ...(additionalArgs || [] as unknown as T));
+    }
   }
 }

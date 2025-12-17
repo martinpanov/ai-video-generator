@@ -23,11 +23,11 @@ async function handleJobFailure(jobId: string, error: StepError) {
     console.error('Failed to update job status:', updateError);
   }
 
-  // try {
-  //   await handleDeleteVideo(jobId);
-  // } catch (deleteError) {
-  //   console.error('Failed to delete video:', deleteError);
-  // }
+  try {
+    await handleDeleteVideo(jobId);
+  } catch (deleteError) {
+    console.error('Failed to delete video:', deleteError);
+  }
 }
 
 export async function POST(request: Request) {
@@ -35,6 +35,7 @@ export async function POST(request: Request) {
     const url = new URL(request.url);
     const jobId = url.searchParams.get('jobId') || '';
     const step = url.searchParams.get('step') || '';
+    const clipId = url.searchParams.get('clipId') || undefined;
 
     const webhookData = await request.json();
 
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
 
-    await jobQueue.completeStep(jobId, step, webhookData);
+    await jobQueue.completeStep(jobId, step, webhookData, clipId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

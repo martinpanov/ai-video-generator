@@ -2,11 +2,10 @@ import { STEPS } from "./constants";
 
 const COMMON_STEPS = [
   { step: STEPS.TRANSCRIBE, subSteps: ["metaData"], label: "Transcribing Audio" },
-  { step: STEPS.CLIP_VIDEO, subSteps: ["srtTranscript", "wordTimestamps"], label: "Clipping Videos" },
 ];
 
 const VIDEO_SOCIAL_MEDIA_STEP = { step: STEPS.DOWNLOAD, subSteps: [], label: "Downloading Video" };
-const CROP_VIDEO_STEP = { step: STEPS.CROP_VIDEO, subSteps: [], label: "Calculating Clip Dimensions" };
+const CROP_VIDEO_STEP = { step: STEPS.CROP_VIDEO, subSteps: ["srtTranscript", "wordTimestamps"], label: "Clipping and Cropping Videos" };
 const FACE_DETECTION_AND_CROP_STEP = { step: STEPS.FACE_DETECTION_AND_CROP, subSteps: [], label: "Calculating Clip Dimensions" };
 const CAPTIONS_STEP = { step: STEPS.CAPTION_CLIP, subSteps: [], label: "Captioning Clip" };
 const DELETE_VIDEO_STEP = { step: STEPS.DELETE_VIDEO, subSteps: [], label: "Deleting Video" };
