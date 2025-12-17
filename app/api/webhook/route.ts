@@ -23,11 +23,11 @@ async function handleJobFailure(jobId: string, error: StepError) {
     console.error('Failed to update job status:', updateError);
   }
 
-  // try {
-  //   await handleDeleteVideo(jobId);
-  // } catch (deleteError) {
-  //   console.error('Failed to delete video:', deleteError);
-  // }
+  try {
+    await handleDeleteVideo(jobId);
+  } catch (deleteError) {
+    console.error('Failed to delete video:', deleteError);
+  }
 }
 
 export async function POST(request: Request) {
