@@ -36,6 +36,9 @@ export const videoValidationSchema = {
     isEqualTo: {
       value: VIDEO_DETAILS.VIDEOS_DURATION_TYPE,
       message: "Invalid Duration Type"
+    },
+    skip: {
+      splitVideo: true
     }
   }
 };
