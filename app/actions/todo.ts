@@ -75,3 +75,32 @@ export async function deleteTodo(todoId: string) {
   revalidatePath('/todos');
   return { success: true };
 }
+
+export async function deleteTodos(todoIds: string[]) {
+  const userId = await verifySession() || "";
+  const todos = await prisma.todos.findMany({
+    where: {
+      id: { in: todoIds },
+      userId,
+    },
+  });
+
+  if (todos.length !== todoIds.length) {
+    throw new Error("Some todos not found or unauthorized");
+  }
+
+  await Promise.all(
+    todos.map(todo => deleteTodo(todo.id))
+  );
+
+  await prisma.todos.deleteMany({
+    where: {
+      id: { in: todoIds },
+      userId,
+    },
+  });
+
+  revalidatePath("/todos");
+
+  return { success: true, count: todos.length };
+}

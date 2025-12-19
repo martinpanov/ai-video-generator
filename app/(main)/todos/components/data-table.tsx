@@ -25,9 +25,9 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { deleteMultipleClips } from "@/app/actions/clips";
 import { DIALOG_IDS } from "@/app/constants";
 import { dispatchEvent } from "@/app/utils/events";
+import { deleteTodos } from "@/app/actions/todo";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -89,7 +89,7 @@ export function DataTable<TData, TValue>({
     const loadingToast = toast.loading(`Deleting ${todoIds.length} todo(s)...`);
 
     try {
-      const result = await deleteMultipleClips(todoIds);
+      const result = await deleteTodos(todoIds);
       toast.dismiss(loadingToast);
       toast.success(`Successfully deleted ${result.count} todo(s)`);
       setRowSelection({});
