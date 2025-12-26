@@ -55,12 +55,6 @@ export async function clipUpdate({
   }
 }
 
-export async function clipFindById(clipId: string) {
-  return prisma.clip.findFirst({
-    where: { id: clipId }
-  });
-}
-
 export async function clipFindByJob(jobId: string) {
   return prisma.clip.findMany({
     where: { jobId },

@@ -25,7 +25,6 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { deleteMultipleClips } from "@/app/actions/clips";
 import { DIALOG_IDS } from "@/app/constants";
 import { dispatchEvent } from "@/app/utils/events";
 
