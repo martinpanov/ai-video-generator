@@ -13,7 +13,7 @@ import { DIALOG_IDS, STATUS } from "@/app/constants";
 import Link from "next/link";
 
 export const StatusDialog = () => {
-  const { isOpen, setIsOpen } = useDialogState({ openId: DIALOG_IDS.STATUS_DIALOG_OPEN, closeId: DIALOG_IDS.STATUS_DIALOG_CLOSE });
+  const { isOpen, setIsOpen } = useDialogState({ openId: DIALOG_IDS.STATUS_DIALOG });
   const [jobId, setJobId] = useState<string | null>(null);
   const [jobStatus, setJobStatus] = useState<JobStatus | null>(null);
 

@@ -54,24 +54,13 @@ export const columns: ColumnDef<Todos>[] = [
       const todo = row.original;
 
       const handleEdit = () => {
-        dispatchEvent(DIALOG_IDS.TODO_DIALOG_OPEN, {
+        dispatchEvent(DIALOG_IDS.TODO_DIALOG, {
           id: todo.id,
           todo: todo.todo
         });
       };
 
-      const handleDelete = async () => {
-        const loadingToast = toast.loading("Deleting todo...");
-
-        try {
-          await deleteTodo(todo.id);
-          toast.dismiss(loadingToast);
-          toast.success("Todo deleted successfully");
-        } catch {
-          toast.dismiss(loadingToast);
-          toast.error("Failed to delete todo");
-        }
-      };
+      const handleDelete = async () => dispatchEvent(DIALOG_IDS.DELETE_TODO_DIALOG, { ids: [todo.id] });
 
       return (
         <DropdownMenu>

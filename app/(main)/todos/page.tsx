@@ -1,34 +1,25 @@
-import { verifySession } from "@/app/lib/session";
-import { DataTable } from "./components/data-table";
-import { columns } from "./components/columns";
-import { todosFindByUser } from "@/app/repositories/todosRepository";
+import { DeleteDialog } from "@/app/components/DeleteDialog";
 import { TodoDialog } from "./components/TodoDialog";
+import { TodosContent } from "./components/TodosContent";
+import { Suspense } from "react";
+import { DIALOG_IDS } from "@/app/constants";
+import { deleteTodos } from "@/app/actions/todo";
+import { PageLoader } from "@/app/components/PageLoader";
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined; }>;
 
-export default async function Todos(props: { searchParams: SearchParams; }) {
-  const searchParams = await props.searchParams;
-  const userId = await verifySession();
-  const page = Number(searchParams.page) || 1;
-  const pageSize = Number(searchParams.pageSize) || 20;
-
-  const { todos, totalCount, totalPages, currentPage } = await todosFindByUser(
-    userId as string,
-    page,
-    pageSize
-  );
-
+export default function Todos({ searchParams }: { searchParams: SearchParams; }) {
   return (
     <div className="container mx-auto p-10">
-      <DataTable
-        columns={columns}
-        data={todos}
-        totalCount={totalCount}
-        totalPages={totalPages}
-        currentPage={currentPage}
-        pageSize={pageSize}
-      />
+      <Suspense fallback={<PageLoader />}>
+        <TodosContent searchParams={searchParams} />
+      </Suspense>
       <TodoDialog />
+      <DeleteDialog
+        dialogId={DIALOG_IDS.DELETE_TODO_DIALOG}
+        deleteAction={deleteTodos}
+        itemName="todo"
+      />
     </div>
   );
 }

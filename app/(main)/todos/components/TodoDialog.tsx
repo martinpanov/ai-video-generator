@@ -24,10 +24,7 @@ type TodoDialogData = {
 };
 
 export function TodoDialog() {
-  const { isOpen, setIsOpen, data } = useDialogState<TodoDialogData>({
-    openId: DIALOG_IDS.TODO_DIALOG_OPEN,
-    closeId: DIALOG_IDS.TODO_DIALOG_CLOSE
-  });
+  const { isOpen, setIsOpen, data } = useDialogState<TodoDialogData>({ openId: DIALOG_IDS.TODO_DIALOG, });
   const formRef = useRef<HTMLFormElement>(null);
   const [state, action, isPending] = useActionState<TodoSubmitState, FormData>(handleTodoSubmit, undefined);
   const previousStateRef = useRef(state);
@@ -54,7 +51,7 @@ export function TodoDialog() {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[425px]" onInteractOutside={(e) => e.preventDefault()}>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{isEditMode ? 'Edit Todo' : 'Add Todo'}</DialogTitle>
         </DialogHeader>
@@ -69,6 +66,9 @@ export function TodoDialog() {
                 type="text"
                 defaultValue={data?.todo || ''}
               />
+              {state?.todo && (
+                <p className="text-sm text-red-500 mt-1">{state.todo}</p>
+              )}
             </Field>
 
             {isEditMode && (

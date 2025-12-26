@@ -1,7 +1,8 @@
 "use client";
 
 import { deleteClip } from "@/app/actions/clips";
-import { STATUS } from "@/app/constants";
+import { DIALOG_IDS, STATUS } from "@/app/constants";
+import { dispatchEvent } from "@/app/utils/events";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -154,18 +155,7 @@ export const columns: ColumnDef<Clip>[] = [
       const clipUrl = row.original.clipUrl;
       const clipId = row.original.id;
 
-      const handleDelete = async () => {
-        const loadingToast = toast.loading("Deleting clip...");
-
-        try {
-          await deleteClip(clipId);
-          toast.dismiss(loadingToast);
-          toast.success("Clip deleted successfully");
-        } catch {
-          toast.dismiss(loadingToast);
-          toast.error("Failed to delete clip");
-        }
-      };
+      const handleDelete = () => dispatchEvent(DIALOG_IDS.DELETE_CLIP_DIALOG, { ids: [clipId] });
 
       return (
         <DropdownMenu>

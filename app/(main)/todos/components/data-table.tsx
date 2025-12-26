@@ -77,7 +77,7 @@ export function DataTable<TData, TValue>({
     },
   });
 
-  const handleDeleteSelected = async () => {
+  const handleDeleteSelected = () => {
     const selectedRows = table.getFilteredSelectedRowModel().rows;
     const todoIds = selectedRows.map((row) => (row.original as any).id);
 
@@ -86,17 +86,7 @@ export function DataTable<TData, TValue>({
       return;
     }
 
-    const loadingToast = toast.loading(`Deleting ${todoIds.length} todo(s)...`);
-
-    try {
-      const result = await deleteTodos(todoIds);
-      toast.dismiss(loadingToast);
-      toast.success(`Successfully deleted ${result.count} todo(s)`);
-      setRowSelection({});
-    } catch {
-      toast.dismiss(loadingToast);
-      toast.error("Failed to delete todos");
-    }
+    dispatchEvent(DIALOG_IDS.DELETE_TODO_DIALOG, { ids: todoIds });
   };
 
   const handlePageChange = (newPage: number) => {
@@ -106,7 +96,7 @@ export function DataTable<TData, TValue>({
   };
 
   return (
-    <div>
+    <div className="w-full">
       <div className="flex items-center justify-between py-4">
         <Input
           placeholder="Filter todos..."
@@ -127,7 +117,7 @@ export function DataTable<TData, TValue>({
               Delete ({table.getFilteredSelectedRowModel().rows.length})
             </Button>
           )}
-          <Button size="sm" onClick={() => dispatchEvent(DIALOG_IDS.TODO_DIALOG_OPEN)}>
+          <Button size="sm" onClick={() => dispatchEvent(DIALOG_IDS.TODO_DIALOG)}>
             Add todo
           </Button>
         </div>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { subscribe, unsubscribe } from "../utils/events";
 
-export function useDialogState<T = void>({ openId, closeId }: { openId: string; closeId: string; }) {
+export function useDialogState<T>({ openId }: { openId: string; }) {
   const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState<T | undefined>(undefined);
 
@@ -10,19 +10,13 @@ export function useDialogState<T = void>({ openId, closeId }: { openId: string; 
       setIsOpen(true);
       setData(event?.detail);
     };
-    const hideHandler = () => {
-      setIsOpen(false);
-      setData(undefined);
-    };
 
     subscribe(openId, showHandler);
-    subscribe(closeId, hideHandler);
 
     return () => {
       unsubscribe(openId, showHandler);
-      unsubscribe(closeId, hideHandler);
     };
-  }, [openId, closeId]);
+  }, [openId]);
 
   return { isOpen, setIsOpen, data };
 }

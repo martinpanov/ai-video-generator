@@ -26,6 +26,8 @@ import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { deleteMultipleClips } from "@/app/actions/clips";
+import { DIALOG_IDS } from "@/app/constants";
+import { dispatchEvent } from "@/app/utils/events";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -75,7 +77,7 @@ export function DataTable<TData, TValue>({
     },
   });
 
-  const handleDeleteSelected = async () => {
+  const handleDeleteSelected = () => {
     const selectedRows = table.getFilteredSelectedRowModel().rows;
     const clipIds = selectedRows.map((row) => (row.original as any).id);
 
@@ -84,17 +86,7 @@ export function DataTable<TData, TValue>({
       return;
     }
 
-    const loadingToast = toast.loading(`Deleting ${clipIds.length} clip(s)...`);
-
-    try {
-      const result = await deleteMultipleClips(clipIds);
-      toast.dismiss(loadingToast);
-      toast.success(`Successfully deleted ${result.count} clip(s)`);
-      setRowSelection({});
-    } catch {
-      toast.dismiss(loadingToast);
-      toast.error("Failed to delete clips");
-    }
+    dispatchEvent(DIALOG_IDS.DELETE_CLIP_DIALOG, { clipIds });
   };
 
   const handlePageChange = (newPage: number) => {
@@ -104,7 +96,7 @@ export function DataTable<TData, TValue>({
   };
 
   return (
-    <div>
+    <div className="w-full">
       <div className="flex items-center justify-between py-4">
         <Input
           placeholder="Filter clips by original video url..."

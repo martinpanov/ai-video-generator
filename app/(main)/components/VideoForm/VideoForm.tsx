@@ -53,7 +53,7 @@ export const VideoForm = () => {
 
   useEffect(() => {
     if (state?.success && state?.jobId) {
-      dispatchEvent(DIALOG_IDS.STATUS_DIALOG_OPEN);
+      dispatchEvent(DIALOG_IDS.STATUS_DIALOG);
       dispatchEvent("setJobId", { jobId: state.jobId });
     }
   }, [state]);
