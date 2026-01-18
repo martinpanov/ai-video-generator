@@ -60,8 +60,6 @@ export const columns: ColumnDef<Todos>[] = [
         });
       };
 
-      const handleDelete = async () => dispatchEvent(DIALOG_IDS.DELETE_TODO_DIALOG, { ids: [todo.id] });
-
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -74,7 +72,7 @@ export const columns: ColumnDef<Todos>[] = [
             <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem variant="destructive" onClick={handleDelete} className="cursor-pointer">
+            <DropdownMenuItem variant="destructive" onClick={() => dispatchEvent(DIALOG_IDS.DELETE_TODO_DIALOG, { ids: [todo.id] })} className="cursor-pointer">
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
