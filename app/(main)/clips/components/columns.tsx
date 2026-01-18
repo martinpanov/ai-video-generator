@@ -152,10 +152,15 @@ export const columns: ColumnDef<Clip>[] = [
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
-      const clipUrl = row.original.clipUrl;
-      const clipId = row.original.id;
+      const { id, clipUrl, title, originalVideoUrl } = row.original;
 
-      const handleDelete = () => dispatchEvent(DIALOG_IDS.DELETE_CLIP_DIALOG, { ids: [clipId] });
+      const handleEdit = () => {
+        dispatchEvent(DIALOG_IDS.EDIT_CLIP_DIALOG, {
+          id,
+          title,
+          originalVideoUrl
+        });
+      };
 
       return (
         <DropdownMenu>
@@ -166,12 +171,15 @@ export const columns: ColumnDef<Clip>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
-            <DropdownMenuItem asChild className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer">
               <a href={clipUrl || '#'} download target="_blank" rel="noopener noreferrer">
                 Download
               </a>
             </DropdownMenuItem>
-            <DropdownMenuItem variant="destructive" onClick={handleDelete} className="cursor-pointer">
+            <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem variant="destructive" onClick={() => dispatchEvent(DIALOG_IDS.DELETE_CLIP_DIALOG, { ids: [id] })} className="cursor-pointer">
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

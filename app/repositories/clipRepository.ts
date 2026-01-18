@@ -62,6 +62,15 @@ export async function clipFindByJob(jobId: string) {
   });
 }
 
+export async function clipFindById(userId: string, id: string) {
+  return prisma.clip.findUnique({
+    where: {
+      userId,
+      id
+    }
+  });
+}
+
 export async function clipFindByUser(
   userId: string,
   page: number = 1,

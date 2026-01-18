@@ -4,6 +4,9 @@ import { prisma } from "../lib/db";
 import { verifySession } from "../lib/session";
 import { revalidatePath } from "next/cache";
 import { apiFetch } from "../utils/api";
+import { ClipSubmitState } from "../(main)/clips/components/EditDialog";
+import { validation } from "../utils/validation";
+import { clipValidationSchema } from "../(main)/clips/clipValidationSchema";
 
 async function deleteClipFromS3(clipUrl: string | null, thumbnailUrl: string | null) {
   try {
@@ -65,4 +68,49 @@ export async function deleteMultipleClips(clipIds: string[]) {
   revalidatePath("/clips");
 
   return { success: true, count: clips.length };
+}
+
+export async function handleClipSubmit(
+  state: ClipSubmitState,
+  formData: FormData
+) {
+  const title = formData.get('title');
+  const originalVideoUrl = formData.get('originalVideoUrl');
+  const id = formData.get('id');
+  const { isValid, errors } = validation({ originalVideoUrl, title }, clipValidationSchema);
+
+  if (!isValid) {
+    return { success: false, ...errors };
+  }
+
+  try {
+    const userId = await verifySession();
+    const clip = await prisma.clip.findUnique({
+      where: {
+        userId: userId as string,
+        id: id as string
+      }
+    });
+
+    if (!clip) {
+      return { success: false, message: "You don't have access to modify this clip" };
+    }
+
+    await prisma.clip.update({
+      where: { id: id as string },
+      data: {
+        title: title as string,
+        originalVideoUrl: originalVideoUrl as string
+      }
+    });
+
+    revalidatePath('/clips');
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to save clip:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to save clip'
+    };
+  }
 }
