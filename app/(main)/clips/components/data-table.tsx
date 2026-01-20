@@ -85,7 +85,7 @@ export function DataTable<TData, TValue>({
       return;
     }
 
-    dispatchEvent(DIALOG_IDS.DELETE_CLIP_DIALOG, { clipIds });
+    dispatchEvent(DIALOG_IDS.DELETE_CLIP_DIALOG, { ids: clipIds });
   };
 
   const handlePageChange = (newPage: number) => {
